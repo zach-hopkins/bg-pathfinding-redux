@@ -12,6 +12,7 @@ movement within Multiplayer Redux.
 - Optional bounded native route preference and local straightening.
 - Automatic startup, persistent independent toggles, and opt-in diagnostics.
 - All four features default ON for fresh installations.
+- Original project code and documentation licensed under MIT.
 - WeiDU component 0 installs on BG2EE and EET, preserves preferences, and supports
   rollback without campaign/save edits.
 

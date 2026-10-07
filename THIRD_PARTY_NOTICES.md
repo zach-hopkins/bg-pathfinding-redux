@@ -11,7 +11,7 @@ Upstream: https://github.com/WeiDUorg/weidu
 
 Release: https://github.com/WeiDUorg/weidu/releases/tag/v251.00
 
-The project's selected license, once chosen, does not replace WeiDU's license.
+The project's MIT license does not replace WeiDU's GPL-2.0 license.
 
 ## EEex and InfinityLoader
 

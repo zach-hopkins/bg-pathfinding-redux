@@ -14,12 +14,8 @@ def main():
     parser=argparse.ArgumentParser(description=__doc__)
     parser.add_argument('--vendor-dir',type=Path,required=True,
                         help='Directory containing official weidu.exe, tagged source ZIP, and COPYING')
-    parser.add_argument('--allow-unlicensed-staging',action='store_true',
-                        help='Build a local staging archive while the project license is undecided')
     args=parser.parse_args()
     meta=check_integrity()
-    if meta['project_license']=='pending-maintainer-choice' and not args.allow_unlicensed_staging:
-        parser.error('Choose the project license before release, or explicitly build local staging only')
     pin=json.loads((ROOT/'tools/weidu-provenance.json').read_text(encoding='utf-8'))
     binary=(args.vendor_dir/'weidu.exe').read_bytes()
     source=(args.vendor_dir/'weidu-v251.00-source.zip').read_bytes()
@@ -39,12 +35,11 @@ def main():
         'mrdx-movement/release.json':(ROOT/'release.json').read_bytes(),
         'mrdx-movement/CHANGELOG.md':(ROOT/'CHANGELOG.md').read_bytes(),
         'mrdx-movement/THIRD_PARTY_NOTICES.md':(ROOT/'THIRD_PARTY_NOTICES.md').read_bytes(),
+        'mrdx-movement/LICENSE':(ROOT/'LICENSE').read_bytes(),
         'mrdx-movement/third_party/weidu/COPYING':license_data,
         'mrdx-movement/third_party/weidu/source-v251.00.zip':source,
         'mrdx-movement/third_party/weidu/provenance.json':(ROOT/'tools/weidu-provenance.json').read_bytes(),
     }
-    if (ROOT/'LICENSE').exists():
-        files['mrdx-movement/LICENSE']=(ROOT/'LICENSE').read_bytes()
     manifest=dict(meta,files={name:digest(data) for name,data in sorted(files.items())})
     files['manifest.json']=(json.dumps(manifest,indent=2)+'\n').encode('utf-8')
     output=ROOT/'dist'

@@ -84,3 +84,9 @@ Underlying movement policy is frozen revision 52. Revision 53 adds release
 configuration/activation only. Visual optimization rounds are closed.
 
 Repository and issue reports: https://github.com/zach-hopkins/bg-pathfinding-redux
+
+## License
+
+Original mod code and documentation: MIT License, copyright (c) 2026 Zach Hopkins.
+See the included `LICENSE`. The WeiDU installer retains its separate GPL-2.0
+license; its license and corresponding source are included under `third_party/weidu`.

@@ -29,3 +29,7 @@ attacking actors. Retreating through allies is easier than vanilla by design.
 See the repository README and validation notes for supported hashes, test limits,
 installation details, and diagnostic reporting. Verify your download using the
 included `SHA256SUMS.txt` release asset.
+
+The project's original code and documentation are MIT licensed, copyright (c)
+2026 Zach Hopkins. The bundled WeiDU installer retains its GPL-2.0 license and
+includes its corresponding source archive.

@@ -102,5 +102,8 @@ authors and maintainers** for installation tooling; and **GemRB's contributors**
 for useful implementation references. This project began as the MRIP allied
 movement prototype within Multiplayer Redux. See [credits](CREDITS.md).
 
-Project licensing is pending the maintainer's choice before public release.
-Third-party tools retain their own licenses; see [third-party notices](THIRD_PARTY_NOTICES.md).
+## License
+
+BG Pathfinding Redux's original code and documentation are available under the
+[MIT License](LICENSE), copyright (c) 2026 Zach Hopkins. Third-party tools retain
+their own licenses; see [third-party notices](THIRD_PARTY_NOTICES.md).

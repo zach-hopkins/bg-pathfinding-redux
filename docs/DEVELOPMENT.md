@@ -62,8 +62,7 @@ source. EEex and proprietary game files are not bundled.
 python tools/build_release.py --vendor-dir .vendor
 ```
 
-While licensing is undecided, maintainers can explicitly build a local staging
-archive with `--allow-unlicensed-staging`. Choose the license before publishing.
+The builder verifies the MIT license and includes it in the installer package.
 
 The builder uses an explicit payload inventory, stable ZIP timestamps, and
 byte-for-byte extraction checks. It writes the Windows ZIP, `SHA256SUMS.txt`, and
@@ -72,7 +71,7 @@ must produce the same SHA256.
 
 ## Release preparation
 
-- Confirm the project license and keep third-party terms separate.
+- Retain the MIT license and keep third-party terms separate.
 - Keep the accepted runtime hash until a new gameplay revision is intentionally
   validated; do not weaken hash or executable guards just to pass checks.
 - Run portable checks and applicable native/installer checks.

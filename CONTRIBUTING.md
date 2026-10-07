@@ -18,4 +18,6 @@ prove gameplay behavior. Do not launch a contributor's game without their reques
 
 Please avoid including game files, raw personal logs, saves, videos, or crash dumps
 in source commits. Bug reports may attach a minimized capture or save when useful
-and deliberately shared. Preview licensing must be chosen before public release.
+and deliberately shared. Contributions to the project's original code and
+documentation are submitted under its MIT license; retain applicable third-party
+notices and identify any separately licensed material.

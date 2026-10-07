@@ -23,6 +23,11 @@ def check_integrity():
     assert sha(RUNTIME) == PIN == meta['runtime_sha256'], 'Accepted runtime changed'
     assert meta['revision'] == 53 and meta['policy_revision'] == 52
     assert meta['executable_sha256'] == GAME_PIN
+    assert meta['project_license'] == 'MIT'
+    license_text = (ROOT/'LICENSE').read_text(encoding='utf-8')
+    assert license_text.startswith('MIT License\n')
+    assert 'Copyright (c) 2026 Zach Hopkins' in license_text
+    assert 'The above copyright notice and this permission notice shall be included' in license_text
     config = configparser.ConfigParser()
     config.read(ROOT/'mrdx-movement/defaults.ini', encoding='utf-8')
     for key in ('Movement','AttackSpacing','GentleSettle','RoutePreference'):
@@ -37,7 +42,7 @@ def check_integrity():
                  'COPY + ~mrdx-movement/defaults.ini~ ~mrdx-movement.ini~',
                  'COPY ~mrdx-movement/runtime/M_MRIP.lua~ ~override/M_MRIP.lua~'):
         assert text in tp2, text
-    print('Integrity: accepted runtime hash, release metadata, four ON defaults, fixture linkage, and BG2EE/EET installer gates passed')
+    print('Integrity: MIT license, accepted runtime hash, release metadata, four ON defaults, fixture linkage, and BG2EE/EET installer gates passed')
     return meta
 
 def lua_check(script, lua=None, dll=None):
