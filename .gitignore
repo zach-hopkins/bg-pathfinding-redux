@@ -1,0 +1,11 @@
+/dist/
+/tests/.work/
+__pycache__/
+*.pyc
+*.log
+*.debug
+*.dmp
+/mrdx-movement/backup/
+/mrdx-movement.ini
+/setup-mrdx-movement.exe
+/.vendor/

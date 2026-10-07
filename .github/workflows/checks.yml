@@ -1,0 +1,21 @@
+name: Release checks
+on:
+  push:
+  pull_request:
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  portable-checks:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Install LuaJIT for simulated configuration checks
+        run: sudo apt-get update && sudo apt-get install -y luajit
+      - name: Check accepted runtime, installer metadata, and configuration fixtures
+        run: python tools/checks.py --lua luajit
+      - name: Syntax-check Python tooling
+        run: python -m compileall -q tools

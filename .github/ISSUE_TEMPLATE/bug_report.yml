@@ -1,0 +1,30 @@
+name: Movement or installation problem
+description: Report a reproducible issue in the preview
+title: "[Bug] "
+body:
+  - type: input
+    id: versions
+    attributes:
+      label: Game, EEex, and mod versions
+      placeholder: Windows BG2EE 2.6.6.0, EEex 1.2.0, 0.1.0-preview
+    validations:
+      required: true
+  - type: input
+    id: setup
+    attributes:
+      label: Installation and enabled features
+      description: BG2EE or EET, relevant mods, and F3–F6 settings. Mention Wine/CrossOver if applicable.
+    validations:
+      required: true
+  - type: textarea
+    id: reproduction
+    attributes:
+      label: Steps, expected behavior, and observed behavior
+      description: Include area, actor/target state, and movement or attack orders.
+    validations:
+      required: true
+  - type: textarea
+    id: evidence
+    attributes:
+      label: Diagnostic evidence
+      description: Attach WeiDU.log and relevant loader output/capture if available. Review personal details before sharing. Game executables must not be uploaded.

@@ -1,0 +1,15 @@
+BACKUP ~mrdx-movement/backup~
+AUTHOR ~Zach Hopkins / BG Pathfinding Redux~
+VERSION ~0.1.0-preview~
+README ~mrdx-movement/README.md~
+
+BEGIN ~BG Pathfinding Redux: allied movement and spacing (BG2EE preview)~
+  DESIGNATED 0
+  REQUIRE_PREDICATE (GAME_IS ~bg2ee eet~)
+    ~This preview requires BG2EE or EET using the BG2EE engine; the tested executable is 2.6.6.0.~
+  REQUIRE_PREDICATE (FILE_EXISTS ~EEex.dll~ AND FILE_EXISTS ~InfinityLoader.exe~)
+    ~Install EEex first and launch through InfinityLoader.exe.~
+  COPY ~mrdx-movement/runtime/M_MRIP.lua~ ~override/M_MRIP.lua~
+  ACTION_IF NOT FILE_EXISTS ~mrdx-movement.ini~ BEGIN
+    COPY + ~mrdx-movement/defaults.ini~ ~mrdx-movement.ini~
+  END

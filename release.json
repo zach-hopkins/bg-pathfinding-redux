@@ -1,0 +1,24 @@
+{
+  "name": "bg-pathfinding-redux",
+  "version": "0.1.0-preview",
+  "revision": 53,
+  "policy_revision": 52,
+  "status": "accepted-solo-preview",
+  "runtime_sha256": "5B4B657326FEE0E3DE868C01753965C71C7995C4E3F07719BBBFEF75CAD9D218",
+  "executable_sha256": "FC821A4806A0305B84FD85F1AAD2BD472C8DB642ED34B4494AE62351CAE1C580",
+  "tested_game": "Windows BG2EE 2.6.6.0",
+  "tested_eeex": "1.2.0",
+  "solo_only": true,
+  "eet_gameplay_acceptance": "pending",
+  "defaults": {
+    "Movement": true,
+    "AttackSpacing": true,
+    "GentleSettle": true,
+    "RoutePreference": true
+  },
+  "existing_settings_preserved": true,
+  "validation_report": "docs/VALIDATION.md",
+  "accepted_date": "2026-10-06",
+  "public_release_published": false,
+  "project_license": "pending-maintainer-choice"
+}

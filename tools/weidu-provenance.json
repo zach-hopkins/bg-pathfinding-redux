@@ -1,0 +1,8 @@
+{
+  "version": "251.00",
+  "binary_sha256": "0D17E26E3F3EF5B36796EB0EE8AE73CB851D8B62C9702C2E224DA2945CAAFB75",
+  "source_sha256": "6B2C5E2AE361DA4C406D297EA02DB081CF29F66EBFB65EEF0E8AE93CFBAAADCF",
+  "license_sha256": "D8C320FFC0030D1B096AE4732B50D2B811CF95E9A9B7377C1127B2563E0A0388",
+  "binary_url": "https://github.com/WeiDUorg/weidu/releases/download/v251.00/WeiDU-Windows-251.zip",
+  "source_url": "https://codeload.github.com/WeiDUorg/weidu/zip/refs/tags/v251.00"
+}
