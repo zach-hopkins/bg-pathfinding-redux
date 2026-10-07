@@ -1,6 +1,6 @@
 -- Offline Lua checks against the actual disposable executable's site bytes.
 local original_print=print
-local source_path="mrdx-movement/runtime/M_MRIP.lua"
+local source_path=MRIP_TEST_RUNTIME_PATH or "mrdx-movement/runtime/profiles/bg2ee-2.6.6.0.lua"
 local expected_revision=MRIP_TEST_REVISION or (MRIP_TEST_PROTOTYPE and (MRIP_TEST_PREFERENCE and 47 or 38) or 3)
 local expected_hooks=MRIP_TEST_PROTOTYPE and (MRIP_TEST_PREFERENCE and 35 or 24) or 6
 local image=assert(io.open(MRIP_TEST_GAME_PATH.."/Baldur.exe","rb")):read("*a")
@@ -276,7 +276,7 @@ if MRIP_TEST_PROTOTYPE then
         assert((MRIP_TEST_PREFERENCE or hook.address~=exe_base+0x375899) and hook.address~=exe_base+0x37595E,'shelved native hook installed')
     end
 end
-assert(output[1]:find("HOOKS_READY",1,true))
+assert(table.concat(output,"\n"):find("HOOKS_READY",1,true),'native hooks ready after profile selection')
 key_listener("F7")
 assert(memory[buffer]==0,"capture requires modifiers")
 if MRIP_TEST_PREFERENCE then

@@ -1,4 +1,42 @@
-# Validation of 0.1.0-preview
+# Validation of 0.1.1-preview
+
+## Steam BG2EE 2.7.3.0 / EEex 1.3.0
+
+On October 7, 2026 the tester confirmed revision 54: **"Yes it works well."**
+This establishes manually confirmed startup and gameplay for the exact Steam
+executable listed in `profiles.json`. The loader log shows `HOOKS_READY`,
+`PREFERENCE_READY`, and `RELEASE_READY` with all four features enabled. It contains
+no MRIP error entries. No F7/F9 scene captures were present, so this update does
+not claim individually logged repetitions of every earlier regression case.
+Raw private logs and user/game files are not distributed.
+
+The port audited 41 native functions, mapped 94 native references, retained all
+56 native signature guards, independently resolved three EEex startup anchors,
+and checked 16 field-offset plus six usertype registrations. All referenced
+functions were instruction-equivalent after relocating addresses and switch
+tables. The existing policy, registers, stack use and validated field offsets
+were retained. All 51 expanded hook bodies passed the offline assembler gate.
+
+## Combined package and update handling
+
+The package bundles the exact accepted revision 53 and revision 54 payloads.
+Its selector adds no gameplay tuning. End-to-end offline native fixtures passed
+through automatic selection for both executable versions, with route preference
+OFF and ON. The configuration fixtures retain 326 assertions; profile-selection
+fixtures add 97 assertions for known builds, future/modified header identities,
+missing and malformed files, profile refusal, and duplicate loading.
+
+Real WeiDU installation/rollback fixtures passed on both 2.6 and 2.7 resources,
+using BG2EE and EET-marker labs. Unknown executable hashes were skipped before
+writing a movement overlay; settings and unrelated resources were preserved.
+EET-marker labs establish installer behavior only, not EET gameplay support.
+
+Unknown startup identities never load a profile or write mod hooks. PE header
+identity is not a cryptographic file check. Exact installer hashes and existing
+native signature/layout guards provide independent checks. Future engine builds
+still need a verified profile, and EEex must support the executable first.
+
+## Historical 2.6 acceptance
 
 Revision 53 was accepted in single-player testing on October 6, 2026, using the
 pinned Windows BG2EE 2.6.6.0 executable and EEex 1.2.0. Its movement policy is
@@ -50,4 +88,5 @@ The user performed live checks. Automated checks never launch the game.
 
 EET's previous installer skip was reproduced and its corrected install/rollback
 verified. EET gameplay acceptance remains pending. Multiplayer, long campaigns,
-other game executables, Wine/Proton, and CrossOver remain unvalidated.
+other executable hashes, Wine/Proton, and CrossOver remain unvalidated.
+The Steam 2.7 acceptance is described above; it does not imply GOG 2.7 support.

@@ -1,5 +1,17 @@
 # Changelog
 
+## 0.1.1-preview
+
+- Added the exact Steam BG2EE 2.7.3.0 / EEex 1.3.0 revision 54 profile, confirmed
+  working by the tester on October 7, 2026. No movement policy tuning.
+- Preserved the accepted revision 53 profile for BG2EE 2.6.6.0 / EEex 1.2.0.
+- Added automatic executable-header profile selection, unsupported-build refusal
+  with an update-needed message, and exact executable hash installer predicates.
+- Settings survive refusal and upgrades; profile files live outside `override`.
+- Verified both profiles through the selector, 97 refusal/selection assertions,
+  and real WeiDU rollback/refusal checks on both versions' resource fixtures.
+- Pinned ZIP platform metadata for reproducible Windows/Linux packaging.
+
 ## 0.1.0-preview
 
 Initial standalone preview of BG Pathfinding Redux, developed as MRIP allied

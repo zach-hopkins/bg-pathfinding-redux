@@ -61,15 +61,33 @@ The accepted tuning uses a 50-pixel route band and bounds added travel to both
 
 ## Source organization
 
-`mrdx-movement/runtime/M_MRIP.lua` is the self-contained accepted runtime: Lua
-controllers, native assembly templates, guards, configuration, and diagnostics.
-It is intentionally byte-identical to revision 53. This repository packaging
-does not refactor its hooks or change gameplay.
+`mrdx-movement/runtime/M_MRIP.lua` is now a small startup selector. It reads
+only the executable header and selects a known PE build identity. Unknown
+identities return before loading a native runtime; a diagnostic and an in-game
+message explain the refusal. Settings are not rewritten. Header identity is a
+selector, not a cryptographic integrity check: the installer checks exact MD5
+hashes, release tooling checks SHA256 hashes, and each runtime checks native
+signatures and field layouts.
+
+`mrdx-movement/runtime/profiles` contains the exact accepted self-contained
+revision 53 (2.6) and revision 54 (Steam 2.7) payloads. Both remain byte-identical
+to the tested files. The 2.7 port relocates native references and guards; all 41
+referenced functions were instruction-equivalent after relocation, and all
+checked field offsets were unchanged. Frozen snapshots deliberately preserve
+test provenance; packaging does not introduce a new movement policy. They live
+outside `override` to avoid automatic loading of both profiles.
+
+New engine versions require a reviewed profile. Scanning for a short instruction
+sequence and guessing the surrounding ABI is not a supported update strategy.
+The selector cannot repair an incompatible EEex installation or undo Steam
+replacing other installed mod files.
 
 `tests/fixtures` contains configuration/bootstrap extracts and native bridge
 factories used by offline checks. These are test inputs, not separately installed
-runtime modules. Checks require configuration extracts to occur in the actual
-runtime. The installed runtime remains the canonical source for shipped behavior.
+runtime modules. Checks require configuration extracts to occur in both accepted profiles.
+Each profile remains the canonical source for its shipped behavior. Selection
+and refusal tests cover the shared loader separately, and native fixtures run
+through that loader for both versions.
 
 The earlier experimental revision history and raw capture files remain in the
 development archive; they are not needed to install this package. A portable

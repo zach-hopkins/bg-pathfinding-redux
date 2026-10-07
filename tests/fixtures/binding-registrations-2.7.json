@@ -1,0 +1,134 @@
+[
+  {
+    "old_rva": "0x46de7a",
+    "new_rva": "0x47a52f",
+    "member": "m_id",
+    "numeric_offset": 72.0
+  },
+  {
+    "old_rva": "0x46ddaf",
+    "new_rva": "0x47a464",
+    "member": "m_objectType",
+    "numeric_offset": 8.0
+  },
+  {
+    "old_rva": "0x46de5d",
+    "new_rva": "0x47a512",
+    "member": "m_typeAI",
+    "numeric_offset": 48.0
+  },
+  {
+    "old_rva": "0x469034",
+    "new_rva": "0x4756e9",
+    "member": "m_EnemyAlly",
+    "numeric_offset": 8.0
+  },
+  {
+    "old_rva": "0x46ddcc",
+    "new_rva": "0x47a481",
+    "member": "m_pos",
+    "numeric_offset": 12.0
+  },
+  {
+    "old_rva": "0x46de06",
+    "new_rva": "0x47a4bb",
+    "member": "m_pArea",
+    "numeric_offset": 24.0
+  },
+  {
+    "old_rva": "0x47db1b",
+    "new_rva": "0x48a1d0",
+    "member": "m_curAction",
+    "numeric_offset": 1016.0
+  },
+  {
+    "old_rva": "0x4695ea",
+    "new_rva": "0x475c9f",
+    "member": "m_actionID",
+    "numeric_offset": 0
+  },
+  {
+    "old_rva": "0x486b1d",
+    "new_rva": "0x493245",
+    "member": "m_baseStats",
+    "numeric_offset": 1376.0
+  },
+  {
+    "old_rva": "0x486c96",
+    "new_rva": "0x4933be",
+    "member": "m_derivedStats",
+    "numeric_offset": 4384.0
+  },
+  {
+    "old_rva": "0x486cb3",
+    "new_rva": "0x4933db",
+    "member": "m_tempStats",
+    "numeric_offset": 7624.0
+  },
+  {
+    "old_rva": "0x45d1c7",
+    "new_rva": "0x46987c",
+    "member": "m_generalState",
+    "numeric_offset": 24.0
+  },
+  {
+    "old_rva": "0x45859c",
+    "new_rva": "0x464c35",
+    "member": "m_generalState",
+    "numeric_offset": 0
+  },
+  {
+    "old_rva": "0x488857",
+    "new_rva": "0x494f7f",
+    "member": "m_bAllowEffectListCall",
+    "numeric_offset": 20132.0
+  },
+  {
+    "old_rva": "0x46192a",
+    "new_rva": "0x46dfdf",
+    "member": "m_pObjectGame",
+    "numeric_offset": 4240.0
+  },
+  {
+    "old_rva": "0x44e792",
+    "new_rva": "0x45ae2b",
+    "member": "m_charactersPortrait",
+    "numeric_offset": 26136.0
+  },
+  {
+    "old_rva": "0x46dca1",
+    "new_rva": "0x47a356",
+    "member": "usertype_m_typeAI",
+    "numeric_offset": null
+  },
+  {
+    "old_rva": "0x47d34e",
+    "new_rva": "0x489a03",
+    "member": "usertype_m_curAction",
+    "numeric_offset": null
+  },
+  {
+    "old_rva": "0x4845f0",
+    "new_rva": "0x490d18",
+    "member": "usertype_m_baseStats",
+    "numeric_offset": null
+  },
+  {
+    "old_rva": "0x48475c",
+    "new_rva": "0x490e84",
+    "member": "usertype_m_derivedStats",
+    "numeric_offset": null
+  },
+  {
+    "old_rva": "0x484778",
+    "new_rva": "0x490ea0",
+    "member": "usertype_m_tempStats",
+    "numeric_offset": null
+  },
+  {
+    "old_rva": "0x4613d7",
+    "new_rva": "0x46da8c",
+    "member": "usertype_m_pObjectGame",
+    "numeric_offset": null
+  }
+]

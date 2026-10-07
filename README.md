@@ -25,21 +25,28 @@ toggled independently. Existing saved settings survive reinstall.
 
 ## Compatibility
 
-**Version 0.1.0-preview** contains the accepted revision 53 runtime.
+**Version 0.1.1-preview** automatically selects the accepted 2.6 or 2.7 runtime.
 
 | Setup | Status |
 | --- | --- |
-| Windows BG2EE 2.6.6.0 with EEex 1.2.0, single player | Tested preview target |
-| EET using that BG2EE executable | Installer verified; live EET gameplay acceptance pending |
+| Windows BG2EE 2.6.6.0 with EEex 1.2.0, single player | Accepted revision 53 |
+| Windows Steam BG2EE 2.7.3.0 with EEex 1.3.0, single player | Revision 54 confirmed working October 7, 2026 |
+| EET using a supported BG2EE executable | Installer verified; live EET gameplay acceptance pending |
 | Other executable versions, BGEE, or IWDEE | Not validated |
 | Multiplayer | Not supported by this preview; several paths deliberately decline network work |
 | Linux through Wine/Proton; macOS through Wine/CrossOver | Potential Windows-executable routes; this mod has not been tested there |
 | Native Linux or macOS game executables | Not supported by these Windows x64 hooks |
 
-The tested executable SHA256 is
-`FC821A4806A0305B84FD85F1AAD2BD472C8DB642ED34B4494AE62351CAE1C580`.
-Native signature and layout guards refuse incompatible hooks. The installer
-accepting a game does not establish that its executable is supported.
+The exact tested executable hashes and profile revisions are listed in
+[profiles.json](profiles.json). The installer accepts those executable hashes.
+At startup, a small loader selects a known PE build identity, then the selected
+runtime verifies native signatures and field layouts before installing hooks.
+Unknown build identities leave the mod disabled, preserve settings, and report
+that an update is needed. This preserves native movement when EEex initializes.
+
+This handles the two known versions without manually replacing the runtime. It
+does not guarantee compatibility with future patches, or prevent EEex itself
+from needing an update. See [game updates](docs/INSTALLATION.md#game-updates).
 
 ## Installation
 
@@ -52,8 +59,9 @@ accepting a game does not establish that its executable is supported.
 
 GitHub's automatic “Source code” archives do not contain the Windows installer.
 For a source checkout, see [building the package](docs/DEVELOPMENT.md).
-Existing saves can be used. The installer writes the movement overlay and user
-settings; it does not patch campaign resources or save files.
+Existing saves can be used. The package keeps its profiles in the `mrdx-movement` folder and installs one
+selector overlay plus user settings. Keep that folder after installation. It
+does not patch campaign resources or save files.
 
 The existing `mrdx-movement` installer IDs and `M_MRIP.lua` runtime name are
 retained for upgrade compatibility. Do not run a second renamed copy of the

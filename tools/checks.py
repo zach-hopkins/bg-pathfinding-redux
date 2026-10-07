@@ -5,6 +5,7 @@ import ctypes
 import hashlib
 import json
 import os
+import re
 from pathlib import Path
 import subprocess
 import sys
@@ -12,8 +13,11 @@ import sys
 ROOT = Path(__file__).resolve().parent.parent
 WORK = ROOT / 'tests/.work'
 RUNTIME = ROOT / 'mrdx-movement/runtime/M_MRIP.lua'
-PIN = '5B4B657326FEE0E3DE868C01753965C71C7995C4E3F07719BBBFEF75CAD9D218'
-GAME_PIN = 'FC821A4806A0305B84FD85F1AAD2BD472C8DB642ED34B4494AE62351CAE1C580'
+PIN = '3F710B11308C67D25F3E254A90E9151955C5D428AF52364D87DEC86A18DD0C15'
+PROFILE_PINS = {
+    'bg2ee-2.6.6.0': '5B4B657326FEE0E3DE868C01753965C71C7995C4E3F07719BBBFEF75CAD9D218',
+    'bg2ee-steam-2.7.3.0': '1E8F7204AEB56BC2C38A6DA0EC1808BE533499F26BD8B059C5397FAD6881F832',
+}
 
 def sha(path):
     return hashlib.sha256(path.read_bytes()).hexdigest().upper()
@@ -21,8 +25,13 @@ def sha(path):
 def check_integrity():
     meta = json.loads((ROOT/'release.json').read_text(encoding='utf-8'))
     assert sha(RUNTIME) == PIN == meta['runtime_sha256'], 'Accepted runtime changed'
-    assert meta['revision'] == 53 and meta['policy_revision'] == 52
-    assert meta['executable_sha256'] == GAME_PIN
+    assert meta['revision'] == 54 and meta['policy_revision'] == 52
+    profiles=json.loads((ROOT/'profiles.json').read_text(encoding='utf-8'))
+    assert profiles==meta['profiles'] and {p['id'] for p in profiles}==set(PROFILE_PINS)
+    loader=RUNTIME.read_text(encoding='utf-8')
+    for profile in profiles:
+        assert sha(ROOT/profile['runtime_path'])==profile['runtime_sha256']==PROFILE_PINS[profile['id']]
+        assert profile['fingerprint'] in loader and profile['runtime_path'] in loader
     assert meta['project_license'] == 'MIT'
     license_text = (ROOT/'LICENSE').read_text(encoding='utf-8')
     assert license_text.startswith('MIT License\n')
@@ -32,17 +41,20 @@ def check_integrity():
     config.read(ROOT/'mrdx-movement/defaults.ini', encoding='utf-8')
     for key in ('Movement','AttackSpacing','GentleSettle','RoutePreference'):
         assert config.get('Movement',key) == '1' and meta['defaults'][key]
-    source = RUNTIME.read_text(encoding='utf-8')
-    for name in ('mrip_release_config.lua','mrip_release_bootstrap.lua'):
-        fragment = (ROOT/'tests/fixtures'/name).read_text(encoding='utf-8')
-        assert source.count(fragment) == 1, 'Fixture no longer matches installed runtime: '+name
+    for profile in profiles:
+        source=(ROOT/profile['runtime_path']).read_text(encoding='utf-8')
+        for name in ('mrip_release_config.lua','mrip_release_bootstrap.lua'):
+            fragment = (ROOT/'tests/fixtures'/name).read_text(encoding='utf-8')
+            assert source.count(fragment) == 1, 'Fixture no longer matches accepted profile: '+name
     tp2 = (ROOT/'mrdx-movement/mrdx-movement.tp2').read_text(encoding='utf-8')
     for text in ('GAME_IS ~bg2ee eet~','DESIGNATED 0','FILE_EXISTS ~EEex.dll~',
                  'FILE_EXISTS ~InfinityLoader.exe~','NOT FILE_EXISTS ~mrdx-movement.ini~',
                  'COPY + ~mrdx-movement/defaults.ini~ ~mrdx-movement.ini~',
                  'COPY ~mrdx-movement/runtime/M_MRIP.lua~ ~override/M_MRIP.lua~'):
         assert text in tp2, text
-    print('Integrity: MIT license, accepted runtime hash, release metadata, four ON defaults, fixture linkage, and BG2EE/EET installer gates passed')
+    for profile in profiles:
+        assert 'FILE_MD5 ~Baldur.exe~ ~'+profile['exe_md5']+'~' in tp2
+    print('Integrity: MIT license, dispatcher and both accepted profile hashes, metadata, four ON defaults, fixture linkage, exact executable installer gates passed')
     return meta
 
 def lua_check(script, lua=None, dll=None):
@@ -81,7 +93,7 @@ def main():
     parser.add_argument('--lua-dll',type=Path,help='Installed 64-bit lua51.dll on Windows')
     parser.add_argument('--game',type=Path,help='Read-only pinned BG2EE/EEex installation for native checks')
     args = parser.parse_args()
-    check_integrity()
+    meta=check_integrity()
     WORK.mkdir(parents=True,exist_ok=True)
     ran = ['integrity']
     if args.lua or args.lua_dll or args.game:
@@ -90,21 +102,40 @@ def main():
             dll = args.game/'EEex/loader/LuaJIT/lua51.dll'
         lua_check(ROOT/'tests/configuration.lua', args.lua, dll)
         ran.append('configuration: 326 assertions')
+        lua_check(ROOT/'tests/profile_selection.lua',args.lua,dll)
+        ran.append('profile selection and unsupported-build refusal')
         if args.game:
             game = args.game.resolve()
-            assert sha(game/'Baldur.exe') == GAME_PIN, 'Unsupported executable for native fixture'
+            profile=next((p for p in meta['profiles'] if p['exe_sha256']==sha(game/'Baldur.exe')),None)
+            assert profile, 'Unsupported executable for native fixture'
             (WORK/'native').mkdir(exist_ok=True)
-            subprocess.run([sys.executable,str(ROOT/'tools/inspect_bindings.py'),'--game',str(game)],
+            subprocess.run([sys.executable,str(ROOT/'tools/inspect_bindings.py'),'--game',str(game),'--profile',profile['id']],
                            cwd=ROOT,check=True,timeout=30)
+            fixture=(ROOT/'tests/native_runtime.lua').read_text(encoding='utf-8')
+            if profile['revision']==54:
+                mappings={int(a,16):b for a,b in json.loads((ROOT/'tests/fixtures/native-rvas-2.7.json').read_text()).items()}
+                def rva(match):
+                    value=int(match.group(),16)
+                    if value in mappings:return f'0x{mappings[value]:X}'
+                    for base in (0x140000000,0x180000000):
+                        if value-base in mappings:return f'0x{base+mappings[value-base]:X}'
+                    return match.group()
+                fixture=re.sub(r'0x[\dA-Fa-f]+',rva,fixture)
+            fixture_path=WORK/'native_runtime.lua'
+            fixture_path.write_text(fixture,encoding='utf-8')
             for enabled in (False,True):
                 entry = WORK/('native-on.lua' if enabled else 'native-off.lua')
-                entry.write_text('MRIP_TEST_REVISION=53\nMRIP_TEST_PROTOTYPE=true\n'
+                entry.write_text('MRIP_TEST_REVISION='+str(profile['revision'])+'\nMRIP_TEST_PROTOTYPE=true\n'
                                  'MRIP_TEST_PREFERENCE=true\nMRIP_TEST_RELEASE=true\n'
                                  'MRIP_TEST_GAME_PATH='+json.dumps(game.as_posix())+'\n'
+                                 'MRIP_TEST_RUNTIME_PATH='+json.dumps(profile['runtime_path'])+'\n'
                                  +("MRIP_TEST_RELEASE_INITIAL_VALUES={RoutePreference='1'}\n" if enabled else '')
-                                 +"dofile('tests/native_runtime.lua')\n",encoding='utf-8')
+                                 +"local original_open,original_dofile=io.open,dofile\n"
+                                 +"io.open=function(path,mode) return original_open(path=='Baldur.exe' and MRIP_TEST_GAME_PATH..'/Baldur.exe' or path,mode) end\n"
+                                 +"dofile=function(path) if path==MRIP_TEST_RUNTIME_PATH then if not MRIP_BaselineRevision then MRIP_DispatchLoaded=nil end;return original_dofile('mrdx-movement/runtime/M_MRIP.lua') end;return original_dofile(path) end\n"
+                                 +"dofile('tests/.work/native_runtime.lua')\n",encoding='utf-8')
                 lua_check(entry,args.lua,dll)
-            ran.append('native runtime: preference OFF and ON')
+            ran.append(profile['id']+': dispatcher + native runtime, preference OFF and ON')
     result=dict(passed=True,checks=ran,game_launched=False,
                 limits='Simulated Lua/EEex state plus actual bytes/layout when --game is supplied. No gameplay emulation.')
     (WORK/'checks.json').write_text(json.dumps(result,indent=2)+'\n',encoding='utf-8')

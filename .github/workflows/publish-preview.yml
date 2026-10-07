@@ -1,15 +1,19 @@
 name: Publish checked preview
 
-# Publish a future explicitly authorized build manually.
+# One-time publication of the user-authorized compatibility update.
+# Return to manual-only publication after the release is verified.
 # Existing release tags are never overwritten.
 on:
+  push:
+    branches: [main]
+    paths: [.github/workflows/publish-preview.yml]
   workflow_dispatch:
 
 permissions:
   contents: read
 
 concurrency:
-  group: publish-v0.1.0-preview
+  group: publish-v0.1.1-preview
   cancel-in-progress: false
 
 jobs:
@@ -26,9 +30,11 @@ jobs:
       - uses: actions/setup-python@v5
         with:
           python-version: '3.12'
+      - name: Install LuaJIT for portable fixture checks
+        run: sudo apt-get update && sudo apt-get install -y luajit
       - name: Check the accepted source and download pinned WeiDU inputs
         run: |
-          python tools/checks.py
+          python tools/checks.py --lua luajit
           python tools/fetch_vendor.py
       - name: Build and verify the Windows installer package
         run: python tools/build_release.py --vendor-dir .vendor
@@ -37,10 +43,10 @@ jobs:
           python - <<'PY'
           import hashlib, zipfile
           from pathlib import Path
-          archive = Path('dist/bg-pathfinding-redux-0.1.0-preview-windows.zip')
+          archive = Path('dist/bg-pathfinding-redux-0.1.1-preview-windows.zip')
           with zipfile.ZipFile(archive) as z:
               actual = hashlib.sha256(z.read('manifest.json')).hexdigest()
-              expected = 'fced7f5e0473d793c900b9a8d4864d8947be8b01fa9c18a3874b312cc2b59c63'
+              expected = '5038e1587adfb3f8b1101d710f80b987216bf5c4581147eaf8bb6497b6215ab5'
               assert actual == expected, 'Package payload differs from the reviewed release'
           PY
       - name: Create a draft with both assets, then publish the prerelease
@@ -48,11 +54,11 @@ jobs:
           GH_TOKEN: ${{ github.token }}
           GH_REPO: ${{ github.repository }}
         run: |
-          gh release create v0.1.0-preview \
-            dist/bg-pathfinding-redux-0.1.0-preview-windows.zip \
+          gh release create v0.1.1-preview \
+            dist/bg-pathfinding-redux-0.1.1-preview-windows.zip \
             dist/SHA256SUMS.txt \
             --target "$GITHUB_SHA" \
-            --title "BG Pathfinding Redux 0.1.0-preview" \
+            --title "BG Pathfinding Redux 0.1.1-preview" \
             --notes-file docs/RELEASE_NOTES.md \
             --prerelease --draft
-          gh release edit v0.1.0-preview --draft=false
+          gh release edit v0.1.1-preview --draft=false

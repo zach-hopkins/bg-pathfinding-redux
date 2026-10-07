@@ -15,7 +15,7 @@ def exercise(weidu, game, eet):
     lab=WORK/('installer-'+('eet-' if eet else 'bg2ee-')+uuid.uuid4().hex[:8])
     (lab/'override').mkdir(parents=True)
     (lab/'lang/en_US').mkdir(parents=True)
-    for name in ('chitin.key','lang/en_US/dialog.tlk'):
+    for name in ('Baldur.exe','chitin.key','lang/en_US/dialog.tlk'):
         shutil.copyfile(game/name,lab/name)
     shutil.copytree(ROOT/'mrdx-movement',lab/'mrdx-movement')
     (lab/'weidu.conf').write_text('lang_dir = en_US\n',encoding='utf-8')
@@ -33,13 +33,16 @@ def exercise(weidu, game, eet):
     key=sha(lab/'chitin.key')
     config=lab/'mrdx-movement.ini'
     runtime=(ROOT/'mrdx-movement/runtime/M_MRIP.lua').read_bytes()
-    def command(action):
+    def command(action,success=True):
         result=subprocess.run([str(weidu),'--noautoupdate','--skip-at-view','--language','0',
                                'mrdx-movement/mrdx-movement.tp2',action,'0'],
                               cwd=lab,capture_output=True,text=True,timeout=30)
         with (lab/'installer-output.txt').open('a',encoding='utf-8') as log:
             log.write(result.stdout+result.stderr+'\n')
-        assert result.returncode==0 and 'ERROR' not in result.stdout and 'FATAL' not in result.stdout, result.stdout+result.stderr
+        if success:
+            assert result.returncode==0 and 'ERROR' not in result.stdout and 'FATAL' not in result.stdout, result.stdout+result.stderr
+        else:
+            assert 'SKIPPING:' in result.stdout and 'Unsupported executable' in result.stdout and 'SUCCESSFULLY INSTALLED' not in result.stdout,result.stdout+result.stderr
     command('--force-install-list')
     assert overlay.read_bytes()==runtime
     assert config.read_bytes()==(ROOT/'mrdx-movement/defaults.ini').read_bytes()
@@ -54,9 +57,15 @@ def exercise(weidu, game, eet):
     assert not overlay.exists() and config.read_bytes()==custom
     assert sha(lab/'lang/en_US/dialog.tlk')==tlk and sha(lab/'chitin.key')==key
     assert other.read_bytes()==b'-- unrelated fixture\r\n'
+    # A future/modified executable must be rejected before creating an overlay.
+    with (lab/'Baldur.exe').open('ab') as file:file.write(b'future-build-fixture')
+    command('--force-install-list',success=False)
+    assert not overlay.exists() and config.read_bytes()==custom
+    assert 'MRDX-MOVEMENT' not in (lab/'WeiDU.log').read_text().upper()
     return dict(game='EET' if eet else 'BG2EE',passed=True,overlay_restored=True,
                 new_overlay_removed=True,defaults_created=True,settings_preserved=True,
-                dialogue_and_key_unchanged=True,unrelated_overlay_unchanged=True)
+                dialogue_and_key_unchanged=True,unrelated_overlay_unchanged=True,
+                unknown_executable_refused=True)
 
 def main():
     parser=argparse.ArgumentParser(description=__doc__)

@@ -1,26 +1,30 @@
-# BG Pathfinding Redux — 0.1.0 preview
+# BG Pathfinding Redux — 0.1.1 preview
 
 Allied creatures pass through one another while walls, closed doors, neutral
 NPCs and enemies retain their native blocking behavior. Party melee approach
 positions prefer usable separate spots; gentle settle separates stopped party
 members after a short 150 ms grace period. Allies can still compress when needed.
 
-## Tested setup
+## Tested setups and updates
 
-Windows BG2EE 2.6.6.0, the project's pinned executable and EEex 1.2.0 setup.
-Supported executable SHA256:
-`FC821A4806A0305B84FD85F1AAD2BD472C8DB642ED34B4494AE62351CAE1C580`.
-Install EEex first. Start through `InfinityLoader.exe`. Native hook signature
-mismatches disable the runtime. Installation also accepts EET on the BG2EE engine.
-The reported EET test copy has the same executable and EEex version; EET gameplay
-acceptance is pending. BGEE/IWDEE, other executable versions and multiplayer are
-not validated release targets; several features deliberately decline network work.
+This 0.1.1-preview package automatically selects the exact accepted runtime for:
 
-Revision 53 passed the final solo release session on October 6, 2026. Automatic
-startup, allied traversal/settle, blocking and attack positioning were checked;
-save/load and area transition were manually confirmed by the tester. This is
-an accepted solo preview; long campaign stability and multiplayer are not proven.
-This package is the initial standalone BG Pathfinding Redux preview.
+- Windows BG2EE 2.6.6.0 / EEex 1.2.0 (revision 53).
+- Windows Steam BG2EE 2.7.3.0 / EEex 1.3.0 (revision 54), confirmed working
+  October 7, 2026.
+
+Executable hashes are listed in the bundled `profiles.json`. Install EEex first
+and launch through `InfinityLoader.exe`. Keep the `mrdx-movement` folder after
+installation; it contains both profiles. Native signature/layout checks remain.
+Unknown executable identities disable this mod with an update-needed message
+instead of installing hooks. Settings are preserved and native movement remains
+active when EEex initializes. This cannot guarantee future patch support or
+prevent EEex itself from needing an update.
+
+EET installation is verified, but EET gameplay remains pending. GOG 2.7, other
+executables, BGEE/IWDEE and multiplayer are unvalidated. Neither accepted setup
+establishes long campaign stability. The repository validation notes distinguish
+manual gameplay observations from simulated offline tests.
 
 ## Install and uninstall
 
@@ -81,7 +85,9 @@ and completed captures when reporting a defect.
   every mod combination, multiplayer synchronization or long campaign stability.
 
 Underlying movement policy is frozen revision 52. Revision 53 adds release
-configuration/activation only. Visual optimization rounds are closed.
+configuration/activation only. Revision 54 relocates the accepted runtime for Steam
+2.7.3.0. The selector adds packaging and compatibility checks without gameplay
+tuning. Visual optimization rounds are closed.
 
 Repository and issue reports: https://github.com/zach-hopkins/bg-pathfinding-redux
 

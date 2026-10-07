@@ -40,6 +40,9 @@ def main():
         'mrdx-movement/third_party/weidu/source-v251.00.zip':source,
         'mrdx-movement/third_party/weidu/provenance.json':(ROOT/'tools/weidu-provenance.json').read_bytes(),
     }
+    files['mrdx-movement/profiles.json']=(ROOT/'profiles.json').read_bytes()
+    for profile in meta['profiles']:
+        files[profile['runtime_path']]=(ROOT/profile['runtime_path']).read_bytes()
     manifest=dict(meta,files={name:digest(data) for name,data in sorted(files.items())})
     files['manifest.json']=(json.dumps(manifest,indent=2)+'\n').encode('utf-8')
     output=ROOT/'dist'
@@ -50,6 +53,7 @@ def main():
         for path,data in sorted(files.items()):
             entry=zipfile.ZipInfo(path,(2026,10,7,0,0,0))
             entry.compress_type=zipfile.ZIP_DEFLATED
+            entry.create_system=3
             entry.external_attr=0o100644<<16
             z.writestr(entry,data,compresslevel=9)
     with zipfile.ZipFile(archive) as z:

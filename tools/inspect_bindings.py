@@ -13,6 +13,7 @@ root = Path(__file__).resolve().parent.parent
 import argparse
 parser=argparse.ArgumentParser()
 parser.add_argument('--game',type=Path,required=True)
+parser.add_argument('--profile',default='bg2ee-2.6.6.0')
 args=parser.parse_args()
 binding=args.game/'LuaBindings.dll'
 
@@ -46,7 +47,12 @@ def binding_layout():
         'EEex_CInfGame.m_charactersPortrait': (0x44E792, 'm_charactersPortrait', 0x6618),
     }
     members, evidence = {}, []
+    registrations={}
+    if args.profile=='bg2ee-steam-2.7.3.0':
+        rows=json.loads((root/'tests/fixtures/binding-registrations-2.7.json').read_text())
+        registrations={int(row['old_rva'],16):int(row['new_rva'],16) for row in rows}
     for path,(rva,name,expected) in specs.items():
+        rva=registrations.get(rva,rva)
         code=read(rva,7)
         assert code[:3]==b'\x48\x8d\x15',path
         string_rva=rva+7+struct.unpack_from('<i',code,3)[0]
@@ -81,6 +87,7 @@ def binding_layout():
             assert len(result)<128
     usertypes,type_evidence={},[]
     for path,(rva,expected_type) in type_specs.items():
+        rva=registrations.get(rva,rva)
         code=read(rva,7);assert code[:3]==b'\x48\x8d\x15',path
         name_rva=rva+7+struct.unpack_from('<i',code,3)[0]
         assert cstring(name_rva)=='usertype_'+path.split('.')[1],path

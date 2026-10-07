@@ -6,7 +6,7 @@ Python 3.10+ and LuaJIT are sufficient for portable integrity/configuration chec
 python tools/checks.py --lua luajit
 ```
 
-CI runs that command. It checks the pinned accepted runtime, installer/defaults
+CI runs that command. It checks the selector and both accepted profiles, installer/defaults
 metadata, linked configuration fixtures, and simulated settings/bootstrap behavior.
 It does not run gameplay or native hooks on the GitHub runner.
 
@@ -24,7 +24,10 @@ State/clock/INI interactions are simulated. Both missing-file OFF fallback and
 package-configured ON route preference are checked. No game process is started.
 
 You may supply `--lua-dll` explicitly if the installed LuaJIT DLL is elsewhere.
-The fixture expects the tested EEex 1.2.0 file layout. Do not commit game files.
+The fixture recognizes both tested executable hashes and selects the corresponding
+binding-registration metadata and native fixture addresses for EEex 1.2.0 or
+1.3.0. It exercises the actual package selector before each payload. Do not commit
+game files. Profile-selection refusal cases also run in portable CI.
 
 ## Installer check
 
@@ -36,7 +39,8 @@ python tools/test_installer.py --weidu ".vendor/weidu.exe" --game "D:/Games/BG2E
 
 Fresh BG2EE and EET-marker resource labs are created under `tests/.work`.
 Checks cover fresh install, previous-overlay restoration, removal of a new overlay,
-preservation of a customized OFF setting, and unchanged dialogue/key resources.
+preservation of a customized OFF setting, unchanged dialogue/key resources,
+and refusal of a modified executable hash before installing an overlay.
 Labs are retained for inspection. They contain copies of local game resources and
 must not be uploaded.
 
@@ -72,11 +76,11 @@ must produce the same SHA256.
 ## Release preparation
 
 - Retain the MIT license and keep third-party terms separate.
-- Keep the accepted runtime hash until a new gameplay revision is intentionally
+- Keep both accepted payload hashes until a new gameplay revision is intentionally
   validated; do not weaken hash or executable guards just to pass checks.
 - Run portable checks and applicable native/installer checks.
 - Build the ZIP and check its install layout and hashes.
-- Attach the ZIP and checksum file to a draft **prerelease** named `v0.1.0-preview`.
+- Attach the ZIP and checksum file to a draft **prerelease** named for the version in `release.json`.
 - Use `docs/RELEASE_NOTES.md` as its description; review before publishing.
 
 The technical docs distinguish manual observations, actual native bytes, and
