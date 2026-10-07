@@ -1,11 +1,8 @@
 name: Publish checked preview
 
-# Bootstrap trigger for the explicitly authorized first release.
-# After publication this workflow is changed to manual dispatch only.
+# Publish a future explicitly authorized build manually.
+# Existing release tags are never overwritten.
 on:
-  push:
-    branches: [main]
-    paths: [.github/workflows/publish-preview.yml]
   workflow_dispatch:
 
 permissions:
