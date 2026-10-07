@@ -1,0 +1,25 @@
+BACKUP ~bg-redux-movement/backup~
+AUTHOR ~Zach Hopkins / BG Pathfinding Redux~
+VERSION ~0.1.2-preview~
+README ~bg-redux-movement/README.md~
+
+BEGIN ~BG Pathfinding Redux: allied movement and spacing (BG2EE preview)~
+  DESIGNATED 0
+  REQUIRE_PREDICATE (GAME_IS ~bg2ee eet~)
+    ~This preview requires BG2EE or EET using a supported Windows BG2EE executable.~
+  REQUIRE_PREDICATE (FILE_EXISTS ~EEex.dll~ AND FILE_EXISTS ~InfinityLoader.exe~)
+    ~Install EEex first and launch through InfinityLoader.exe.~
+  REQUIRE_PREDICATE (FILE_MD5 ~Baldur.exe~ ~6439dc555d7b5b91c2aa59bb0f32b271~ OR FILE_MD5 ~Baldur.exe~ ~68d3b46a164931d2136c38aff397b4b1~)
+    ~Unsupported executable. This package supports the verified Windows BG2EE 2.6.6.0 and Steam 2.7.3.0 builds. Update the mod and EEex for newer builds; no movement hooks were installed.~
+  REQUIRE_PREDICATE (NOT MOD_IS_INSTALLED ~mrdx-movement/mrdx-movement.tp2~ 0)
+    ~Uninstall the older component using setup-mrdx-movement.exe first, then install this package. Your previous settings will be copied if the new settings file does not exist.~
+  REQUIRE_PREDICATE (NOT FILE_EXISTS ~override/M_MRIP.lua~)
+    ~An older movement overlay remains at override/M_MRIP.lua. Uninstall the old package first; for a manually installed prototype, back up and remove that old overlay before installing this package.~
+  COPY ~bg-redux-movement/runtime/M_BGREDX.lua~ ~override/M_BGREDX.lua~
+  ACTION_IF NOT FILE_EXISTS ~bg-redux-movement.ini~ BEGIN
+    ACTION_IF FILE_EXISTS ~mrdx-movement.ini~ BEGIN
+      COPY + ~mrdx-movement.ini~ ~bg-redux-movement.ini~
+    END ELSE BEGIN
+      COPY + ~bg-redux-movement/defaults.ini~ ~bg-redux-movement.ini~
+    END
+  END

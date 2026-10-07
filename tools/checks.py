@@ -12,11 +12,11 @@ import sys
 
 ROOT = Path(__file__).resolve().parent.parent
 WORK = ROOT / 'tests/.work'
-RUNTIME = ROOT / 'mrdx-movement/runtime/M_MRIP.lua'
-PIN = '3F710B11308C67D25F3E254A90E9151955C5D428AF52364D87DEC86A18DD0C15'
+RUNTIME = ROOT / 'bg-redux-movement/runtime/M_BGREDX.lua'
+PIN = '33B7B782E0EC975608AD98D01A30F760707F4015A8DE2B3898B52D21FC3526E0'
 PROFILE_PINS = {
-    'bg2ee-2.6.6.0': '5B4B657326FEE0E3DE868C01753965C71C7995C4E3F07719BBBFEF75CAD9D218',
-    'bg2ee-steam-2.7.3.0': '1E8F7204AEB56BC2C38A6DA0EC1808BE533499F26BD8B059C5397FAD6881F832',
+    'bg2ee-2.6.6.0': '50A501510936EC4099700E1AE9921EDFFF6B9588B10C68E03D0372FDFC4CF230',
+    'bg2ee-steam-2.7.3.0': 'C8563E03D0D251C34CB47FA2FD89F5F3D07BBF56F8000BA9CBABA660C7F018AA',
 }
 
 def sha(path):
@@ -24,7 +24,7 @@ def sha(path):
 
 def check_integrity():
     meta = json.loads((ROOT/'release.json').read_text(encoding='utf-8'))
-    assert sha(RUNTIME) == PIN == meta['runtime_sha256'], 'Accepted runtime changed'
+    assert sha(RUNTIME) == PIN == meta['runtime_sha256'], 'Shipped selector changed'
     assert meta['revision'] == 54 and meta['policy_revision'] == 52
     profiles=json.loads((ROOT/'profiles.json').read_text(encoding='utf-8'))
     assert profiles==meta['profiles'] and {p['id'] for p in profiles}==set(PROFILE_PINS)
@@ -38,23 +38,26 @@ def check_integrity():
     assert 'Copyright (c) 2026 Zach Hopkins' in license_text
     assert 'The above copyright notice and this permission notice shall be included' in license_text
     config = configparser.ConfigParser()
-    config.read(ROOT/'mrdx-movement/defaults.ini', encoding='utf-8')
+    config.read(ROOT/'bg-redux-movement/defaults.ini', encoding='utf-8')
     for key in ('Movement','AttackSpacing','GentleSettle','RoutePreference'):
         assert config.get('Movement',key) == '1' and meta['defaults'][key]
     for profile in profiles:
         source=(ROOT/profile['runtime_path']).read_text(encoding='utf-8')
-        for name in ('mrip_release_config.lua','mrip_release_bootstrap.lua'):
+        for name in ('bg_redux_release_config.lua','bg_redux_release_bootstrap.lua','bg_redux_public_logging.lua'):
             fragment = (ROOT/'tests/fixtures'/name).read_text(encoding='utf-8')
             assert source.count(fragment) == 1, 'Fixture no longer matches accepted profile: '+name
-    tp2 = (ROOT/'mrdx-movement/mrdx-movement.tp2').read_text(encoding='utf-8')
+    tp2 = (ROOT/'bg-redux-movement/bg-redux-movement.tp2').read_text(encoding='utf-8')
     for text in ('GAME_IS ~bg2ee eet~','DESIGNATED 0','FILE_EXISTS ~EEex.dll~',
-                 'FILE_EXISTS ~InfinityLoader.exe~','NOT FILE_EXISTS ~mrdx-movement.ini~',
-                 'COPY + ~mrdx-movement/defaults.ini~ ~mrdx-movement.ini~',
-                 'COPY ~mrdx-movement/runtime/M_MRIP.lua~ ~override/M_MRIP.lua~'):
+                 'FILE_EXISTS ~InfinityLoader.exe~','NOT FILE_EXISTS ~bg-redux-movement.ini~',
+                 'COPY + ~bg-redux-movement/defaults.ini~ ~bg-redux-movement.ini~',
+                 'COPY ~bg-redux-movement/runtime/M_BGREDX.lua~ ~override/M_BGREDX.lua~',
+                 'NOT MOD_IS_INSTALLED ~mrdx-movement/mrdx-movement.tp2~ 0',
+                 'NOT FILE_EXISTS ~override/M_MRIP.lua~',
+                 'COPY + ~mrdx-movement.ini~ ~bg-redux-movement.ini~'):
         assert text in tp2, text
     for profile in profiles:
         assert 'FILE_MD5 ~Baldur.exe~ ~'+profile['exe_md5']+'~' in tp2
-    print('Integrity: MIT license, dispatcher and both accepted profile hashes, metadata, four ON defaults, fixture linkage, exact executable installer gates passed')
+    print('Integrity: MIT license, dispatcher and both shipped profile hashes, metadata, four ON defaults, fixture linkage, exact executable installer gates passed')
     return meta
 
 def lua_check(script, lua=None, dll=None):
@@ -102,6 +105,8 @@ def main():
             dll = args.game/'EEex/loader/LuaJIT/lua51.dll'
         lua_check(ROOT/'tests/configuration.lua', args.lua, dll)
         ran.append('configuration: 326 assertions')
+        lua_check(ROOT/'tests/public_logging.lua',args.lua,dll)
+        ran.append('quiet public logging and explicit diagnostics')
         lua_check(ROOT/'tests/profile_selection.lua',args.lua,dll)
         ran.append('profile selection and unsupported-build refusal')
         if args.game:
@@ -132,7 +137,7 @@ def main():
                                  +("MRIP_TEST_RELEASE_INITIAL_VALUES={RoutePreference='1'}\n" if enabled else '')
                                  +"local original_open,original_dofile=io.open,dofile\n"
                                  +"io.open=function(path,mode) return original_open(path=='Baldur.exe' and MRIP_TEST_GAME_PATH..'/Baldur.exe' or path,mode) end\n"
-                                 +"dofile=function(path) if path==MRIP_TEST_RUNTIME_PATH then if not MRIP_BaselineRevision then MRIP_DispatchLoaded=nil end;return original_dofile('mrdx-movement/runtime/M_MRIP.lua') end;return original_dofile(path) end\n"
+                                 +"dofile=function(path) if path==MRIP_TEST_RUNTIME_PATH then if not MRIP_BaselineRevision then MRIP_DispatchLoaded=nil end;return original_dofile('bg-redux-movement/runtime/M_BGREDX.lua') end;return original_dofile(path) end\n"
                                  +"dofile('tests/.work/native_runtime.lua')\n",encoding='utf-8')
                 lua_check(entry,args.lua,dll)
             ran.append(profile['id']+': dispatcher + native runtime, preference OFF and ON')

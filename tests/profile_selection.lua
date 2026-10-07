@@ -1,6 +1,6 @@
 -- Portable tests: no game image, native DLL, or hook writes.
 local original_open,original_loadfile,original_print=io.open,loadfile,print
-local loader='mrdx-movement/runtime/M_MRIP.lua'
+local loader='bg-redux-movement/runtime/M_BGREDX.lua'
 local source=assert(original_open(loader,'rb')):read('*a')
 local run=assert(loadstring(source))
 local checks=0
@@ -33,7 +33,7 @@ local function test(data,size,expected,mode)
     end
     loadfile=function(path)
         loads=loads+1
-        expect(path=='mrdx-movement/runtime/profiles/'..expected..'.lua','correct profile selected')
+        expect(path=='bg-redux-movement/runtime/profiles/'..expected..'.lua','correct profile selected')
         if mode=='missing' then return nil,'missing payload fixture' end
         return function()
             if mode=='throw' then error('runtime fixture failed') end

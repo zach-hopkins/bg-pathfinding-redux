@@ -25,7 +25,7 @@ toggled independently. Existing saved settings survive reinstall.
 
 ## Compatibility
 
-**Version 0.1.1-preview** automatically selects the accepted 2.6 or 2.7 runtime.
+**Version 0.1.2-preview** automatically selects the accepted 2.6 or 2.7 runtime.
 
 | Setup | Status |
 | --- | --- |
@@ -53,19 +53,22 @@ from needing an update. See [game updates](docs/INSTALLATION.md#game-updates).
 1. Close the game and install [EEex](https://github.com/Bubb13/EEex/releases).
 2. Download the **Windows installer ZIP** from this repository's
    [Releases](https://github.com/zach-hopkins/bg-pathfinding-redux/releases).
-3. Extract beside `Baldur.exe`, preserving the `mrdx-movement` folder.
-4. Run `setup-mrdx-movement.exe` and install component **0**.
+3. Extract beside `Baldur.exe`, preserving the `bg-redux-movement` folder.
+4. Run `setup-bg-redux-movement.exe` and install component **0**.
 5. Start the game through **`InfinityLoader.exe`**.
 
 GitHub's automatic “Source code” archives do not contain the Windows installer.
 For a source checkout, see [building the package](docs/DEVELOPMENT.md).
-Existing saves can be used. The package keeps its profiles in the `mrdx-movement` folder and installs one
+Existing saves can be used. The package keeps its profiles in the `bg-redux-movement` folder and installs one
 selector overlay plus user settings. Keep that folder after installation. It
 does not patch campaign resources or save files.
 
-The existing `mrdx-movement` installer IDs and `M_MRIP.lua` runtime name are
-retained for upgrade compatibility. Do not run a second renamed copy of the
-earlier prototype alongside this one. See [installation and troubleshooting](docs/INSTALLATION.md).
+Upgrading from **0.1.0/0.1.1**: uninstall the old component using
+`setup-mrdx-movement.exe` first, then install this package. The new installer
+copies `mrdx-movement.ini` to `bg-redux-movement.ini` when the new file is absent.
+It refuses an installed legacy component or a remaining `override/M_MRIP.lua`
+prototype, so the two versions cannot silently run together. See
+[installation and troubleshooting](docs/INSTALLATION.md).
 
 ## Controls
 
@@ -78,10 +81,12 @@ Hold **Left Ctrl + Left Shift**, then press:
 | F4 | Gentle settle |
 | F3 | Visual route preference |
 
-Changes persist in `mrdx-movement.ini`. You can also edit its four settings to
+Changes persist in `bg-redux-movement.ini`. You can also edit its four settings to
 `1` (on) or `0` (off), then restart the game.
 
-Diagnostics are off by default. With the same modifiers, **F7** starts a
+Normal play logs only compact startup/status/error entries with the `[BG Redux]`
+prefix. Automatic startup does not add toggle instructions to game chat.
+Detailed diagnostics are off by default. With the same modifiers, **F7** starts a
 20-second capture, **F8** takes a snapshot, and **F9** ends the capture early.
 Recording does not enable or disable movement.
 

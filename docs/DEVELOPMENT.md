@@ -7,7 +7,9 @@ python tools/checks.py --lua luajit
 ```
 
 CI runs that command. It checks the selector and both accepted profiles, installer/defaults
-metadata, linked configuration fixtures, and simulated settings/bootstrap behavior.
+metadata, linked configuration/logging fixtures, and simulated settings/bootstrap
+behavior. Quiet-log fixtures check suppressed routine telemetry, retained status/errors,
+explicit snapshots/captures, and startup chat suppression.
 It does not run gameplay or native hooks on the GitHub runner.
 
 ## Native offline fixture on Windows
@@ -40,7 +42,8 @@ python tools/test_installer.py --weidu ".vendor/weidu.exe" --game "D:/Games/BG2E
 Fresh BG2EE and EET-marker resource labs are created under `tests/.work`.
 Checks cover fresh install, previous-overlay restoration, removal of a new overlay,
 preservation of a customized OFF setting, unchanged dialogue/key resources,
-and refusal of a modified executable hash before installing an overlay.
+refusal of a modified executable hash before installing an overlay, old-component
+and manual-overlay refusal, and migration of legacy preferences after uninstall.
 Labs are retained for inspection. They contain copies of local game resources and
 must not be uploaded.
 

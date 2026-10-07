@@ -1,13 +1,13 @@
-local R=dofile('tests/fixtures/mrip_release_config.lua')
+local R=dofile('tests/fixtures/bg_redux_release_config.lua')
 local checks=0
 local function check(value)assert(value);checks=checks+1 end
 local defaults,warnings=R.read(function(path,section,key,default)
-    check(path=='.\\mrdx-movement.ini' and section=='Movement');return default
+    check(path=='.\\bg-redux-movement.ini' and section=='Movement');return default
 end)
 check(defaults.Movement and defaults.AttackSpacing and defaults.GentleSettle and not defaults.RoutePreference and #warnings==0)
 local invalid,warnings=R.read(function()return 'maybe' end)
 check(invalid.Movement and invalid.AttackSpacing and invalid.GentleSettle and not invalid.RoutePreference and #warnings==4)
-local bootstrap=assert(io.open('tests/fixtures/mrip_release_bootstrap.lua')):read('*a')
+local bootstrap=assert(io.open('tests/fixtures/bg_redux_release_bootstrap.lua')):read('*a')
 for bits=0,15 do
     local values={}
     for i,entry in ipairs(R.keys)do values[entry[1]]=math.floor(bits/2^(i-1))%2==1 and '1' or '0' end

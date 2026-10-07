@@ -1,5 +1,15 @@
 # Changelog
 
+## 0.1.2-preview — 2026-10-07
+
+- Rename the public folder/installer/settings to `bg-redux-movement`, and the overlay
+  to `M_BGREDX.lua`; keep the GitHub project name.
+- Refuse legacy component/prototype coexistence and copy old settings after uninstall
+  when the new settings file is absent.
+- Replace prototype feedback with `[BG Redux]` messages, quiet routine telemetry,
+  and suppress automatic-startup chat; retain startup/errors and requested captures.
+- Native hooks, signature tables, movement policy and tuning are unchanged.
+
 ## 0.1.1-preview
 
 - Added the exact Steam BG2EE 2.7.3.0 / EEex 1.3.0 revision 54 profile, confirmed

@@ -61,7 +61,7 @@ The accepted tuning uses a 50-pixel route band and bounds added travel to both
 
 ## Source organization
 
-`mrdx-movement/runtime/M_MRIP.lua` is now a small startup selector. It reads
+`bg-redux-movement/runtime/M_BGREDX.lua` is now a small startup selector. It reads
 only the executable header and selects a known PE build identity. Unknown
 identities return before loading a native runtime; a diagnostic and an in-game
 message explain the refusal. Settings are not rewritten. Header identity is a
@@ -69,13 +69,22 @@ selector, not a cryptographic integrity check: the installer checks exact MD5
 hashes, release tooling checks SHA256 hashes, and each runtime checks native
 signatures and field layouts.
 
-`mrdx-movement/runtime/profiles` contains the exact accepted self-contained
-revision 53 (2.6) and revision 54 (Steam 2.7) payloads. Both remain byte-identical
-to the tested files. The 2.7 port relocates native references and guards; all 41
-referenced functions were instruction-equivalent after relocation, and all
-checked field offsets were unchanged. Frozen snapshots deliberately preserve
-test provenance; packaging does not introduce a new movement policy. They live
-outside `override` to avoid automatic loading of both profiles.
+`bg-redux-movement/runtime/profiles` contains the self-contained revision 53
+(2.6) and revision 54 (Steam 2.7) implementations with public naming and logging
+cleanup. `profiles.json` records both their shipped hashes and the earlier
+accepted runtime hashes. The 0.1.2 presentation changes rename the settings path,
+clean feedback, suppress routine telemetry outside explicit captures, and silence
+automatic activation chat. All embedded assembly blocks and native signature
+tables are unchanged. Movement rules, addresses, geometry and budgets are unchanged.
+The 2.7 port audited 41 referenced functions for instruction equivalence after
+relocation; checked field offsets were unchanged. Profiles live outside `override`
+to avoid automatic loading of both.
+
+The engine-facing overlay uses the compact `M_BGREDX.lua` name; installer,
+folder and settings use the full `bg-redux-movement` name.
+
+`MRIP_*` native bridge symbols remain internal implementation names so native
+bindings and assembler labels stay unchanged; they are not public package names.
 
 New engine versions require a reviewed profile. Scanning for a short instruction
 sequence and guessing the surrounding ABI is not a supported update strategy.

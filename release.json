@@ -1,10 +1,10 @@
 {
-  "name": "bg-pathfinding-redux",
-  "version": "0.1.1-preview",
+  "name": "bg-redux-movement",
+  "version": "0.1.2-preview",
   "revision": 54,
   "policy_revision": 52,
-  "status": "accepted-versioned-solo-preview",
-  "runtime_sha256": "3F710B11308C67D25F3E254A90E9151955C5D428AF52364D87DEC86A18DD0C15",
+  "status": "public-cleanup-preview",
+  "runtime_sha256": "33B7B782E0EC975608AD98D01A30F760707F4015A8DE2B3898B52D21FC3526E0",
   "tested_game": "Windows BG2EE 2.6.6.0 and Steam BG2EE 2.7.3.0",
   "tested_eeex": "1.2.0 on 2.6; 1.3.0 on 2.7",
   "solo_only": true,
@@ -34,10 +34,11 @@
         "checksum": 0,
         "file_size": 7182336
       },
-      "runtime_sha256": "5B4B657326FEE0E3DE868C01753965C71C7995C4E3F07719BBBFEF75CAD9D218",
-      "runtime_path": "mrdx-movement/runtime/profiles/bg2ee-2.6.6.0.lua",
+      "runtime_sha256": "50A501510936EC4099700E1AE9921EDFFF6B9588B10C68E03D0372FDFC4CF230",
+      "runtime_path": "bg-redux-movement/runtime/profiles/bg2ee-2.6.6.0.lua",
       "tested_eeex": "1.2.0",
-      "accepted_date": "2026-10-06"
+      "accepted_date": "2026-10-06",
+      "accepted_runtime_sha256": "5B4B657326FEE0E3DE868C01753965C71C7995C4E3F07719BBBFEF75CAD9D218"
     },
     {
       "id": "bg2ee-steam-2.7.3.0",
@@ -52,12 +53,14 @@
         "checksum": 7205089,
         "file_size": 7202696
       },
-      "runtime_sha256": "1E8F7204AEB56BC2C38A6DA0EC1808BE533499F26BD8B059C5397FAD6881F832",
-      "runtime_path": "mrdx-movement/runtime/profiles/bg2ee-steam-2.7.3.0.lua",
+      "runtime_sha256": "C8563E03D0D251C34CB47FA2FD89F5F3D07BBF56F8000BA9CBABA660C7F018AA",
+      "runtime_path": "bg-redux-movement/runtime/profiles/bg2ee-steam-2.7.3.0.lua",
       "tested_eeex": "1.3.0",
-      "accepted_date": "2026-10-07"
+      "accepted_date": "2026-10-07",
+      "accepted_runtime_sha256": "1E8F7204AEB56BC2C38A6DA0EC1808BE533499F26BD8B059C5397FAD6881F832"
     }
   ],
   "package_selection": "PE header identity, then existing full signature and layout guards",
-  "unknown_build_behavior": "No profile loaded; mod disabled, settings preserved, native movement retained when EEex initializes"
+  "unknown_build_behavior": "No profile loaded; mod disabled, settings preserved, native movement retained when EEex initializes",
+  "presentation_cleanup": "Installer/config/overlay renamed; normal logging quiet; native hooks and movement policy unchanged."
 }

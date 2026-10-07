@@ -1,4 +1,24 @@
-# Validation of 0.1.1-preview
+# Validation of 0.1.2-preview
+
+## Public naming and quiet logging
+
+This release changes installer/configuration/overlay names and presentation only.
+It builds on the recorded 2.6 and Steam 2.7 gameplay acceptance below. It does not
+claim a new live gameplay test of 0.1.2. Embedded assembly blocks and native
+signature tables were compared exactly with 0.1.1 and remain unchanged.
+
+The integrated native fixtures passed on both supported executables with visual
+preference OFF/ON, alongside 326 configuration, 97 selector and 28 quiet-logging
+assertions. Automatic activation adds no chat message; startup/status/errors remain
+visible in the loader log. Explicit F7/F8/F9 diagnostics retain detailed output.
+Diagnostic failures cannot leave normal play in verbose mode.
+
+Real WeiDU resource labs verify old-component and manual-overlay refusal,
+uninstalling the legacy ID before installation, copying old preferences only when
+new preferences are absent, preservation of current settings, rollback, and unknown
+executable refusal. No game was launched or installed game copy modified.
+
+## Historical 0.1.1 acceptance and combined package checks
 
 ## Steam BG2EE 2.7.3.0 / EEex 1.3.0
 

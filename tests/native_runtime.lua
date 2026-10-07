@@ -1,6 +1,6 @@
 -- Offline Lua checks against the actual disposable executable's site bytes.
 local original_print=print
-local source_path=MRIP_TEST_RUNTIME_PATH or "mrdx-movement/runtime/profiles/bg2ee-2.6.6.0.lua"
+local source_path=MRIP_TEST_RUNTIME_PATH or "bg-redux-movement/runtime/profiles/bg2ee-2.6.6.0.lua"
 local expected_revision=MRIP_TEST_REVISION or (MRIP_TEST_PROTOTYPE and (MRIP_TEST_PREFERENCE and 47 or 38) or 3)
 local expected_hooks=MRIP_TEST_PROTOTYPE and (MRIP_TEST_PREFERENCE and 35 or 24) or 6
 local image=assert(io.open(MRIP_TEST_GAME_PATH.."/Baldur.exe","rb")):read("*a")
@@ -34,7 +34,7 @@ local release_initialized,release_values,release_writes
 if MRIP_TEST_RELEASE then
     release_values=MRIP_TEST_RELEASE_INITIAL_VALUES or {};release_writes={}
     EEex={GetINIString=function(path,section,key,default)
-        assert(path=='.\\mrdx-movement.ini' and section=='Movement')
+        assert(path=='.\\bg-redux-movement.ini' and section=='Movement')
         return release_values[key] or default
     end,SetINIString=function(path,section,key,value)
         release_values[key]=value;release_writes[#release_writes+1]={key,value}
@@ -253,7 +253,9 @@ assert(#hooks==expected_hooks)
 if MRIP_TEST_RELEASE then
     local initially_preferred=release_values.RoutePreference=='1'
     assert(release_initialized and memory[buffer+56]==0 and memory[buffer]==0)
+    local startup_feedback=#feedback
     release_initialized()
+    assert(#feedback==startup_feedback,'automatic startup must not print prototype instructions to game chat')
     assert(memory[buffer+56]==1 and memory[buffer]==0,'automatic startup must not record')
     assert(MRIP_AttackSpacingEnabled and MRIP_SettleEnabled and MRIP_PreferenceEnabled==initially_preferred)
     if initially_preferred then
@@ -650,7 +652,7 @@ if MRIP_TEST_PROTOTYPE then
         return out
     end
     EEex_WriteStringCache=function() return exe_base+0x900800 end
-    local adapter=assert(io.open('tests/fixtures/mrip_attack_adapter.lua')):read('*a')
+    local adapter=assert(io.open('tests/fixtures/bg_redux_attack_adapter.lua')):read('*a')
     local approach,continuation=assert(loadstring(adapter..'\nreturn attack_body,attack_continue_body'))()
     local function real_bridge(body,path)
         local t,i,pieces=body,1,{}
@@ -682,11 +684,11 @@ if MRIP_TEST_PROTOTYPE then
     real_bridge(continuation(),'tests/.work/native/attack-continue-real-luacall-expanded.txt')
     real_bridge(approach(true),'tests/.work/native/attack-reevaluate-real-luacall-expanded.txt')
     real_bridge(continuation(true),'tests/.work/native/attack-reevaluate-continue-real-luacall-expanded.txt')
-    local snapshotSource=assert(io.open('tests/fixtures/mrip_snapshot_native.lua')):read('*a')
+    local snapshotSource=assert(io.open('tests/fixtures/bg_redux_snapshot_native.lua')):read('*a')
     local snapshotFactory=assert(loadstring(snapshotSource..'\nreturn snapshot_body'))()
     real_bridge(snapshotFactory(),'tests/.work/native/snapshot-real-luacall-expanded.txt')
     if MRIP_TEST_PREFERENCE then
-        local source=assert(io.open('tests/fixtures/mrip_preference_native.lua')):read('*a')
+        local source=assert(io.open('tests/fixtures/bg_redux_preference_native.lua')):read('*a')
         local factory=assert(loadstring(source..'\nreturn preference_path_body'))()
         MRIP_PREF_LABELS=true
         real_bridge(factory(),'tests/.work/native/preference-real-luacall-expanded.txt')

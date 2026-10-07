@@ -27,20 +27,20 @@ def main():
         license_paths=[name for name in z.namelist() if name.count('/')==1 and name.endswith('/COPYING')]
         assert len(license_paths)==1 and z.read(license_paths[0])==license_data
     files={
-        'setup-mrdx-movement.exe':binary,
-        'mrdx-movement/README.md':(ROOT/'mrdx-movement/README.md').read_bytes(),
-        'mrdx-movement/mrdx-movement.tp2':(ROOT/'mrdx-movement/mrdx-movement.tp2').read_bytes(),
-        'mrdx-movement/defaults.ini':(ROOT/'mrdx-movement/defaults.ini').read_bytes(),
-        'mrdx-movement/runtime/M_MRIP.lua':(ROOT/'mrdx-movement/runtime/M_MRIP.lua').read_bytes(),
-        'mrdx-movement/release.json':(ROOT/'release.json').read_bytes(),
-        'mrdx-movement/CHANGELOG.md':(ROOT/'CHANGELOG.md').read_bytes(),
-        'mrdx-movement/THIRD_PARTY_NOTICES.md':(ROOT/'THIRD_PARTY_NOTICES.md').read_bytes(),
-        'mrdx-movement/LICENSE':(ROOT/'LICENSE').read_bytes(),
-        'mrdx-movement/third_party/weidu/COPYING':license_data,
-        'mrdx-movement/third_party/weidu/source-v251.00.zip':source,
-        'mrdx-movement/third_party/weidu/provenance.json':(ROOT/'tools/weidu-provenance.json').read_bytes(),
+        'setup-bg-redux-movement.exe':binary,
+        'bg-redux-movement/README.md':(ROOT/'bg-redux-movement/README.md').read_bytes(),
+        'bg-redux-movement/bg-redux-movement.tp2':(ROOT/'bg-redux-movement/bg-redux-movement.tp2').read_bytes(),
+        'bg-redux-movement/defaults.ini':(ROOT/'bg-redux-movement/defaults.ini').read_bytes(),
+        'bg-redux-movement/runtime/M_BGREDX.lua':(ROOT/'bg-redux-movement/runtime/M_BGREDX.lua').read_bytes(),
+        'bg-redux-movement/release.json':(ROOT/'release.json').read_bytes(),
+        'bg-redux-movement/CHANGELOG.md':(ROOT/'CHANGELOG.md').read_bytes(),
+        'bg-redux-movement/THIRD_PARTY_NOTICES.md':(ROOT/'THIRD_PARTY_NOTICES.md').read_bytes(),
+        'bg-redux-movement/LICENSE':(ROOT/'LICENSE').read_bytes(),
+        'bg-redux-movement/third_party/weidu/COPYING':license_data,
+        'bg-redux-movement/third_party/weidu/source-v251.00.zip':source,
+        'bg-redux-movement/third_party/weidu/provenance.json':(ROOT/'tools/weidu-provenance.json').read_bytes(),
     }
-    files['mrdx-movement/profiles.json']=(ROOT/'profiles.json').read_bytes()
+    files['bg-redux-movement/profiles.json']=(ROOT/'profiles.json').read_bytes()
     for profile in meta['profiles']:
         files[profile['runtime_path']]=(ROOT/profile['runtime_path']).read_bytes()
     manifest=dict(meta,files={name:digest(data) for name,data in sorted(files.items())})

@@ -22,12 +22,14 @@ for _,entry in ipairs({
 end
 if install_ok then
     EEex_GameState_AddInitializedListener(function()
+        MRIP_StartupActivation=true
         local ok,err=pcall(function()
             if release_options.Movement and MRIP_TraceEnabled and not pass_mode then MRIP_TogglePass() end
-            log('RELEASE_READY version=0.1.0-preview movement='..tostring(pass_mode)
+            log('RELEASE_READY version=0.1.2-preview movement='..tostring(pass_mode)
                 ..' preference='..tostring(MRIP_PreferenceEnabled)..' spacing='..tostring(MRIP_AttackSpacingEnabled)
                 ..' settle='..tostring(MRIP_SettleEnabled)..' capture='..tostring(active))
         end)
+        MRIP_StartupActivation=false
         if not ok then movement_disable('release-startup');log('RELEASE_ERROR '..tostring(err)) end
     end)
 end

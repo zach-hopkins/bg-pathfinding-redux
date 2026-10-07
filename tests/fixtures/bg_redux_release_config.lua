@@ -1,5 +1,5 @@
 -- Persistent release switches, using EEex's installed INI API.
-local R={path='.\\mrdx-movement.ini',section='Movement',keys={
+local R={path='.\\bg-redux-movement.ini',section='Movement',keys={
     {'Movement',true},{'AttackSpacing',true},{'GentleSettle',true},{'RoutePreference',false}}}
 function R.read(getter)
     assert(type(getter)=='function','EEex INI reader unavailable')

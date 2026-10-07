@@ -3,9 +3,9 @@
 ## WeiDU
 
 The Windows release package includes an unmodified WeiDU 251 executable, renamed
-`setup-mrdx-movement.exe`. WeiDU is separately licensed under GPL-2.0. Its license
+`setup-bg-redux-movement.exe`. WeiDU is separately licensed under GPL-2.0. Its license
 and the corresponding tagged source archive are bundled under
-`mrdx-movement/third_party/weidu/` by the release builder.
+`bg-redux-movement/third_party/weidu/` by the release builder.
 
 Upstream: https://github.com/WeiDUorg/weidu
 

@@ -11,22 +11,35 @@ This preview does not support multiplayer.
 ## Install or upgrade
 
 Extract the release's Windows installer ZIP into the game directory, beside
-`Baldur.exe`. Keep `setup-mrdx-movement.exe` and the `mrdx-movement` folder together.
+`Baldur.exe`. Keep `setup-bg-redux-movement.exe` and the `bg-redux-movement` folder together.
 Run the installer and choose component 0. Launch using `InfinityLoader.exe`.
 
-If an older package is installed, use WeiDU's normal reinstall flow. Existing
-`mrdx-movement.ini` choices are preserved, so an older OFF choice stays OFF.
-The package supplies ON defaults only when that settings file is absent.
+For **0.1.2 and later**, use WeiDU's normal reinstall flow. Existing
+`bg-redux-movement.ini` choices are preserved, so an older OFF choice stays OFF.
 
-Do not install a separate renamed prototype overlay alongside this package.
-The selector uses the existing `override/M_MRIP.lua` name and a duplicate-load
-guard. Keep the entire `mrdx-movement` folder: it holds both runtime profiles.
+### Upgrading from 0.1.0/0.1.1 or the prototype
+
+1. Close the game. Run the previous `setup-mrdx-movement.exe` and uninstall
+   component 0 before installing the newly named package.
+2. Keep `mrdx-movement.ini`. When `bg-redux-movement.ini` is absent, the new
+   installer copies your previous settings into it. An existing new settings
+   file takes priority. Both files survive uninstall.
+3. Install component 0 using `setup-bg-redux-movement.exe`.
+
+The installer refuses an installed old component or a lingering
+`override/M_MRIP.lua`. For a manually copied prototype, back up and remove that
+old overlay after closing the game. Do not delete WeiDU-managed files in place of
+uninstalling their component. The duplicate-load guard is a second safeguard;
+it does not replace removing the old installation.
+
+Keep the entire `bg-redux-movement` folder: it holds both runtime profiles.
+The installed selector is `override/M_BGREDX.lua`.
 
 ## Uninstall
 
-Close the game, run `setup-mrdx-movement.exe`, and remove component 0. WeiDU
+Close the game, run `setup-bg-redux-movement.exe`, and remove component 0. WeiDU
 restores a prior movement overlay if one existed, or removes the new overlay.
-`mrdx-movement.ini` remains so preferences survive a later reinstall. You can
+`bg-redux-movement.ini` remains so preferences survive a later reinstall. You can
 remove that configuration file manually after uninstall if desired.
 
 ## Settings
@@ -51,13 +64,12 @@ Include the game/EEex version, mod version, executable SHA256 if available,
 with Left Ctrl + Left Shift + F7, reproduce within 20 seconds, and end with F9.
 F8 adds a snapshot. Captures expire automatically after 20 seconds.
 
-The output log location is configured by your `InfinityLoader.ini`; it is not
-necessarily named `MRIP-prototype.log`. Look for `[MRIP prototype]` entries,
-`PROFILE_SELECTED`, `LOADED revision=53` or `54`, and `RELEASE_READY` mode values.
-The frozen payloads retain historical version strings; `PROFILE_SELECTED` reports
-the current package version and selected profile. The historical log prefix
-is retained in the accepted runtime. Review logs before sharing: filenames,
-character names, or other details may be personal. Attach a save only when useful.
+The output log location is configured by `InfinityLoader.ini`. Look for
+`[BG Redux]` entries, `PROFILE_SELECTED`, and `RELEASE_READY` mode values. Both
+report the current package version. Normal play reports only startup/status/errors;
+routine movement telemetry appears during requested captures or snapshots.
+Review captures before sharing: character names and other details may be personal.
+Attach a save only when useful.
 
 | Symptom | First check |
 | --- | --- |

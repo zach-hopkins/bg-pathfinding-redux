@@ -1,15 +1,19 @@
 name: Publish checked preview
 
-# Publish a future explicitly authorized build manually.
+# One-time publication of the user-requested public naming and logging cleanup.
+# Return to manual-only operation after verification.
 # Existing release tags are never overwritten.
 on:
+  push:
+    branches: [main]
+    paths: [.github/workflows/publish-preview.yml]
   workflow_dispatch:
 
 permissions:
   contents: read
 
 concurrency:
-  group: publish-v0.1.1-preview
+  group: publish-v0.1.2-preview
   cancel-in-progress: false
 
 jobs:
@@ -39,10 +43,10 @@ jobs:
           python - <<'PY'
           import hashlib, zipfile
           from pathlib import Path
-          archive = Path('dist/bg-pathfinding-redux-0.1.1-preview-windows.zip')
+          archive = Path('dist/bg-redux-movement-0.1.2-preview-windows.zip')
           with zipfile.ZipFile(archive) as z:
               actual = hashlib.sha256(z.read('manifest.json')).hexdigest()
-              expected = '5038e1587adfb3f8b1101d710f80b987216bf5c4581147eaf8bb6497b6215ab5'
+              expected = '7ab860ed3c6faf0b8427d2327c19279698f665c52ebd750c2a8dce19ff2b9a3b'
               assert actual == expected, 'Package payload differs from the reviewed release'
           PY
       - name: Create a draft with both assets, then publish the prerelease
@@ -50,11 +54,11 @@ jobs:
           GH_TOKEN: ${{ github.token }}
           GH_REPO: ${{ github.repository }}
         run: |
-          gh release create v0.1.1-preview \
-            dist/bg-pathfinding-redux-0.1.1-preview-windows.zip \
+          gh release create v0.1.2-preview \
+            dist/bg-redux-movement-0.1.2-preview-windows.zip \
             dist/SHA256SUMS.txt \
             --target "$GITHUB_SHA" \
-            --title "BG Pathfinding Redux 0.1.1-preview" \
+            --title "BG Pathfinding Redux 0.1.2-preview" \
             --notes-file docs/RELEASE_NOTES.md \
             --prerelease --draft
-          gh release edit v0.1.1-preview --draft=false
+          gh release edit v0.1.2-preview --draft=false

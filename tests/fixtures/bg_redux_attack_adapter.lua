@@ -22,12 +22,12 @@ local function attack_diagnose(mover,target,reach,stage,selected,reason)
         t and t.state or 0,t and t.base_state or 0,t and t.x or -1,t and t.y or -1,reach or -1,tostring(selected),reason or 'unknown'))
 end
 function MRIP_ToggleAttackSpacing()
-    if not MRIP_TraceEnabled then feedback('prototype unavailable; check log');return end
+    if not MRIP_TraceEnabled then feedback('movement unavailable; check EEex log');return end
     if active then MRIP_Stop('attack-mode-change') end
     MRIP_AttackSpacingEnabled=not MRIP_AttackSpacingEnabled
     attack_reset()
     log('ATTACK_MODE enabled='..tostring(MRIP_AttackSpacingEnabled))
-    feedback(MRIP_AttackSpacingEnabled and 'attack spacing ON; F7=start test' or 'attack spacing OFF; F7=start test')
+    feedback(MRIP_AttackSpacingEnabled and 'attack spacing ON' or 'attack spacing OFF')
 end
 local function attack_select(mover,target,reach,point)
     if not MRIP_AttackSpacingEnabled then return false,'spacing-off' end
