@@ -1,0 +1,61 @@
+name: Publish checked preview
+
+# Bootstrap trigger for the explicitly authorized first release.
+# After publication this workflow is changed to manual dispatch only.
+on:
+  push:
+    branches: [main]
+    paths: [.github/workflows/publish-preview.yml]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: publish-v0.1.0-preview
+  cancel-in-progress: false
+
+jobs:
+  publish:
+    if: github.repository == 'zach-hopkins/bg-pathfinding-redux'
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Check the accepted source and download pinned WeiDU inputs
+        run: |
+          python tools/checks.py
+          python tools/fetch_vendor.py
+      - name: Build and verify the Windows installer package
+        run: python tools/build_release.py --vendor-dir .vendor
+      - name: Require the exact reviewed payload manifest
+        run: |
+          python - <<'PY'
+          import hashlib, zipfile
+          from pathlib import Path
+          archive = Path('dist/bg-pathfinding-redux-0.1.0-preview-windows.zip')
+          with zipfile.ZipFile(archive) as z:
+              actual = hashlib.sha256(z.read('manifest.json')).hexdigest()
+              expected = 'fced7f5e0473d793c900b9a8d4864d8947be8b01fa9c18a3874b312cc2b59c63'
+              assert actual == expected, 'Package payload differs from the reviewed release'
+          PY
+      - name: Create a draft with both assets, then publish the prerelease
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
+        run: |
+          gh release create v0.1.0-preview \
+            dist/bg-pathfinding-redux-0.1.0-preview-windows.zip \
+            dist/SHA256SUMS.txt \
+            --target "$GITHUB_SHA" \
+            --title "BG Pathfinding Redux 0.1.0-preview" \
+            --notes-file docs/RELEASE_NOTES.md \
+            --prerelease --draft
+          gh release edit v0.1.0-preview --draft=false
