@@ -1,4 +1,27 @@
-# Validation of 0.1.2-preview
+# Validation of 0.1.3-preview
+
+## Restricted-Lua startup correction
+
+The tester reported `M_BGREDX.lua:25: attempt to index global 'io' (a nil value)`
+when starting 0.1.2. The selector incorrectly assumed that the game's Lua state
+exposes the standard I/O library. The offline harness used `luaL_openlibs`, which
+made that assumption pass. This was a packaging-selector defect.
+
+The selector now reads the loaded PE header through EEex APIs, and checks the
+DOS/PE signatures, bounded header offset, architecture, timestamp, entrypoint,
+image size and checksum. It never uses `io`. Exact executable hashes remain
+installer gates; native signature/layout guards are unchanged. Disk file length
+remains provenance metadata rather than a startup selection input.
+
+206 selector assertions run with `io=nil`, covering both known identities,
+unknown/malformed headers, absent APIs, loader/payload failures and duplicate
+loading. Both integrated native fixtures execute the actual selector and payload
+with `io=nil` using real 2.6/2.7 header and instruction bytes, with visual preference
+OFF/ON. Configuration and quiet-logging fixtures remain unchanged. Both movement
+profile hashes are unchanged from 0.1.2. No game was launched; live hotfix startup
+acceptance remains pending the tester's confirmation.
+
+## Historical 0.1.2 public cleanup checks
 
 ## Public naming and quiet logging
 

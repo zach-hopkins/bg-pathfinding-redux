@@ -62,9 +62,10 @@ The accepted tuning uses a 50-pixel route band and bounds added travel to both
 ## Source organization
 
 `bg-redux-movement/runtime/M_BGREDX.lua` is now a small startup selector. It reads
-only the executable header and selects a known PE build identity. Unknown
+the loaded executable header through `EEex_GetImageBase` and `EEex_Read32` and
+selects a known PE identity without Lua file I/O. Unknown
 identities return before loading a native runtime; a diagnostic and an in-game
-message explain the refusal. Settings are not rewritten. Header identity is a
+message explain the refusal. Settings are not rewritten. Loaded header identity is a
 selector, not a cryptographic integrity check: the installer checks exact MD5
 hashes, release tooling checks SHA256 hashes, and each runtime checks native
 signatures and field layouts.

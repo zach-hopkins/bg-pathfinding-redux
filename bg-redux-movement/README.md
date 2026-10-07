@@ -1,4 +1,4 @@
-# BG Pathfinding Redux — 0.1.2 preview
+# BG Pathfinding Redux — 0.1.3 preview
 
 Allied creatures pass through one another while walls, closed doors, neutral
 NPCs and enemies retain their native blocking behavior. Party melee approach
@@ -7,7 +7,7 @@ members after a short 150 ms grace period. Allies can still compress when needed
 
 ## Tested setups and updates
 
-This 0.1.2-preview package automatically selects the supported native profile for:
+This 0.1.3-preview package automatically selects the supported native profile for:
 
 - Windows BG2EE 2.6.6.0 / EEex 1.2.0 (revision 53).
 - Windows Steam BG2EE 2.7.3.0 / EEex 1.3.0 (revision 54), confirmed working

@@ -25,7 +25,7 @@ toggled independently. Existing saved settings survive reinstall.
 
 ## Compatibility
 
-**Version 0.1.2-preview** automatically selects the accepted 2.6 or 2.7 runtime.
+**Version 0.1.3-preview** automatically selects the accepted 2.6 or 2.7 runtime.
 
 | Setup | Status |
 | --- | --- |
@@ -39,7 +39,7 @@ toggled independently. Existing saved settings survive reinstall.
 
 The exact tested executable hashes and profile revisions are listed in
 [profiles.json](profiles.json). The installer accepts those executable hashes.
-At startup, a small loader selects a known PE build identity, then the selected
+At startup, a small loader selects a known loaded-image PE identity, then the selected
 runtime verifies native signatures and field layouts before installing hooks.
 Unknown build identities leave the mod disabled, preserve settings, and report
 that an update is needed. This preserves native movement when EEex initializes.

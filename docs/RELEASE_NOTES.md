@@ -1,47 +1,36 @@
-# BG Pathfinding Redux 0.1.2-preview
+# BG Pathfinding Redux 0.1.3-preview
 
-Public naming and logging cleanup for the confirmed Windows BG2EE 2.6.6.0 /
-EEex 1.2.0 and Steam BG2EE 2.7.3.0 / EEex 1.3.0 profiles. Native assembly,
-signature tables, movement rules and tuning are unchanged.
+Fixes the startup error `M_BGREDX.lua:25: attempt to index global 'io' (a nil value)`
+in the public version selector. The game's Lua environment does not expose the I/O
+library that the previous offline harness assumed. The corrected selector uses
+EEex memory reads of the loaded executable header and contains loading failures.
+Both movement profiles, native hooks, settings and tuning are unchanged from 0.1.2.
 
-## Install
+## Install or upgrade
 
-Download `bg-redux-movement-0.1.2-preview-windows.zip`, close the game, and extract
-beside `Baldur.exe`. Run `setup-bg-redux-movement.exe`, install component 0, and
-launch through `InfinityLoader.exe`. Keep the `bg-redux-movement` folder.
-Settings live in `bg-redux-movement.ini`; the installed selector is
-`override/M_BGREDX.lua`. Automatic source archives lack the installer.
+Close the game, extract `bg-redux-movement-0.1.3-preview-windows.zip` beside
+`Baldur.exe`, and install/reinstall component 0 using `setup-bg-redux-movement.exe`.
+Launch through `InfinityLoader.exe`; keep the `bg-redux-movement` folder.
+Existing settings survive reinstall. Upgrades from 0.1.0/0.1.1 still require
+uninstalling the old component with `setup-mrdx-movement.exe` first; legacy settings
+are copied only when the new settings file is absent. See installation instructions.
 
-## Upgrade from 0.1.0/0.1.1
+## Checks and scope
 
-Uninstall the old component using `setup-mrdx-movement.exe` first. Keep
-`mrdx-movement.ini`: the new installer copies it when the new settings file is
-absent. Existing `bg-redux-movement.ini` choices take priority. The installer
-refuses an installed legacy component or a remaining `override/M_MRIP.lua`.
-For a manually installed prototype, back up and remove its old overlay first.
-Do not delete WeiDU-managed files instead of uninstalling.
+Both supported executable profiles pass integrated offline checks with `io=nil`,
+including actual executable header/native bytes and visual preference OFF/ON.
+206 selector assertions cover known identities, malformed/unknown headers,
+missing APIs, missing/failing loaders and duplicate loading. Configuration and
+quiet-log checks pass. These checks do not emulate gameplay. Live startup of this
+hotfix remains pending tester confirmation; no agent game launch was performed.
 
-## Quiet normal play
+Supported profiles remain Windows BG2EE 2.6.6.0 / EEex 1.2.0 and Steam BG2EE
+2.7.3.0 / EEex 1.3.0. Unknown header identities refuse safely; exact installer hashes
+and native guards remain. The selected package version is in `PROFILE_SELECTED`;
+unchanged profile readiness messages retain their earlier payload version.
 
-Compact startup/status/error entries use `[BG Redux]`. Routine actor, path and
-settle telemetry is hidden outside requested captures. Automatic activation adds
-no chat instructions. Manual feature toggles still confirm their state.
-
-Hold Left Ctrl + Left Shift: F6 movement, F5 attack spacing, F4 gentle settle,
-F3 visual preference. F7 starts a 20-second diagnostic capture, F8 snapshots,
-and F9 ends recording. All four features default ON; existing preferences persist.
-
-## Scope and validation
-
-Both integrated native profile fixtures, configuration/selector/quiet-logging
-checks and real WeiDU install/rollback/migration/refusal labs pass. These checks
-do not emulate gameplay; live acceptance belongs to the earlier tested profiles.
-No game launch or installed-game changes were performed for this cleanup.
-
-Known profiles select automatically. Unknown builds refuse safely before mod
-hooks; future patches still require a reviewed profile and compatible EEex.
-Single player only. EET gameplay, other storefront 2.7 executables, multiplayer,
-Wine/Proton and CrossOver remain unvalidated. See compatibility and validation docs.
-
-Verify the Windows ZIP against `SHA256SUMS.txt`. Original code/docs are MIT licensed,
-copyright (c) 2026 Zach Hopkins. Bundled WeiDU retains GPL-2.0 and includes source.
+Normal play keeps compact startup/status/errors; detailed telemetry is requested
+with Left Ctrl + Left Shift + F7/F8/F9. Movement defaults ON and F6 toggles it.
+Single player only; EET gameplay, other storefront builds, multiplayer and
+Wine/Proton/CrossOver remain unvalidated. Verify the ZIP with `SHA256SUMS.txt`.
+Original code/docs are MIT licensed; bundled WeiDU retains GPL-2.0 with source.

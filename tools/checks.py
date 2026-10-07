@@ -13,7 +13,7 @@ import sys
 ROOT = Path(__file__).resolve().parent.parent
 WORK = ROOT / 'tests/.work'
 RUNTIME = ROOT / 'bg-redux-movement/runtime/M_BGREDX.lua'
-PIN = '33B7B782E0EC975608AD98D01A30F760707F4015A8DE2B3898B52D21FC3526E0'
+PIN = 'E97385999D3BDA5DDEFF26DC442E2CDC847608E1D9F859AF44BA10CF371F35E2'
 PROFILE_PINS = {
     'bg2ee-2.6.6.0': '50A501510936EC4099700E1AE9921EDFFF6B9588B10C68E03D0372FDFC4CF230',
     'bg2ee-steam-2.7.3.0': 'C8563E03D0D251C34CB47FA2FD89F5F3D07BBF56F8000BA9CBABA660C7F018AA',
@@ -31,7 +31,7 @@ def check_integrity():
     loader=RUNTIME.read_text(encoding='utf-8')
     for profile in profiles:
         assert sha(ROOT/profile['runtime_path'])==profile['runtime_sha256']==PROFILE_PINS[profile['id']]
-        assert profile['fingerprint'] in loader and profile['runtime_path'] in loader
+        assert profile['memory_fingerprint'] in loader and profile['runtime_path'] in loader
     assert meta['project_license'] == 'MIT'
     license_text = (ROOT/'LICENSE').read_text(encoding='utf-8')
     assert license_text.startswith('MIT License\n')
@@ -135,9 +135,8 @@ def main():
                                  'MRIP_TEST_GAME_PATH='+json.dumps(game.as_posix())+'\n'
                                  'MRIP_TEST_RUNTIME_PATH='+json.dumps(profile['runtime_path'])+'\n'
                                  +("MRIP_TEST_RELEASE_INITIAL_VALUES={RoutePreference='1'}\n" if enabled else '')
-                                 +"local original_open,original_dofile=io.open,dofile\n"
-                                 +"io.open=function(path,mode) return original_open(path=='Baldur.exe' and MRIP_TEST_GAME_PATH..'/Baldur.exe' or path,mode) end\n"
-                                 +"dofile=function(path) if path==MRIP_TEST_RUNTIME_PATH then if not MRIP_BaselineRevision then MRIP_DispatchLoaded=nil end;return original_dofile('bg-redux-movement/runtime/M_BGREDX.lua') end;return original_dofile(path) end\n"
+                                 +"local original_dofile=dofile\n"
+                                 +"dofile=function(path) if path==MRIP_TEST_RUNTIME_PATH then if not MRIP_BaselineRevision then MRIP_DispatchLoaded=nil end;local saved_io=io;io=nil;local ok,err=pcall(original_dofile,'bg-redux-movement/runtime/M_BGREDX.lua');io=saved_io;if not ok then error(err) end;return end;return original_dofile(path) end\n"
                                  +"dofile('tests/.work/native_runtime.lua')\n",encoding='utf-8')
                 lua_check(entry,args.lua,dll)
             ran.append(profile['id']+': dispatcher + native runtime, preference OFF and ON')

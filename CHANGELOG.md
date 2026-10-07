@@ -1,5 +1,12 @@
 # Changelog
 
+## 0.1.3-preview — 2026-10-07
+
+- Fix selector startup when the game does not expose Lua `io`: use EEex reads
+  of the loaded executable header instead. Movement profiles are unchanged.
+- Add io-disabled selector/integrated fixtures and contain missing chunk-loader
+  failures. Exact installer hashes and native guards remain in place.
+
 ## 0.1.2-preview — 2026-10-07
 
 - Rename the public folder/installer/settings to `bg-redux-movement`, and the overlay

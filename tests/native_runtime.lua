@@ -20,6 +20,7 @@ end
 local exe_base=0x140000000
 local function executable_byte(address)
     local rva=address-exe_base
+    if rva>=0 and rva<4096 then return image:byte(rva+1) end
     for _,s in ipairs(sections) do
         if rva>=s.rva and rva<s.rva+s.size then return image:byte(s.raw+rva-s.rva+1) end
     end
@@ -41,6 +42,7 @@ if MRIP_TEST_RELEASE then
     end}
     EEex_GameState_AddInitializedListener=function(callback) release_initialized=callback end
 end
+EEex_GetImageBase=function()return exe_base end
 local corrupt_site=nil
 local sprites={
     {m_id=42,m_pos={x=120,y=240},m_typeAI={m_EnemyAlly=2},m_curAction={m_actionID=23,m_dest={x=420,y=240}}},

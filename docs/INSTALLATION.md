@@ -65,8 +65,8 @@ with Left Ctrl + Left Shift + F7, reproduce within 20 seconds, and end with F9.
 F8 adds a snapshot. Captures expire automatically after 20 seconds.
 
 The output log location is configured by `InfinityLoader.ini`. Look for
-`[BG Redux]` entries, `PROFILE_SELECTED`, and `RELEASE_READY` mode values. Both
-report the current package version. Normal play reports only startup/status/errors;
+`[BG Redux]` entries, `PROFILE_SELECTED`, and `RELEASE_READY` mode values. `PROFILE_SELECTED` reports the current package version; unchanged profile
+`RELEASE_READY` lines retain their earlier payload version. Normal play reports only startup/status/errors;
 routine movement telemetry appears during requested captures or snapshots.
 Review captures before sharing: character names and other details may be personal.
 Attach a save only when useful.

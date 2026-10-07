@@ -1,6 +1,6 @@
 BACKUP ~bg-redux-movement/backup~
 AUTHOR ~Zach Hopkins / BG Pathfinding Redux~
-VERSION ~0.1.2-preview~
+VERSION ~0.1.3-preview~
 README ~bg-redux-movement/README.md~
 
 BEGIN ~BG Pathfinding Redux: allied movement and spacing (BG2EE preview)~

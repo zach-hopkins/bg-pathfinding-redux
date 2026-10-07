@@ -1,13 +1,13 @@
--- BG Pathfinding Redux 0.1.2-preview: select a verified native runtime.
+-- BG Pathfinding Redux 0.1.3-preview: select a verified native runtime.
 -- Unknown executable builds never reach either payload or install mod hooks.
 if MRIP_BaselineRevision or MRIP_DispatchLoaded then return end
 MRIP_DispatchLoaded=true
-MRIP_PackageVersion='0.1.2-preview'
+MRIP_PackageVersion='0.1.3-preview'
 local profiles={
-    ['609437B3:004F74D0:03530000:00000000:7182336']={
+    ['609437B3:004F74D0:03530000:00000000']={
         id='bg2ee-2.6.6.0',revision=53,
         path='bg-redux-movement/runtime/profiles/bg2ee-2.6.6.0.lua'},
-    ['6A18D73D:004F84B0:03532000:006DF0E1:7202696']={
+    ['6A18D73D:004F84B0:03532000:006DF0E1']={
         id='bg2ee-steam-2.7.3.0',revision=54,
         path='bg-redux-movement/runtime/profiles/bg2ee-steam-2.7.3.0.lua'},
 }
@@ -22,27 +22,21 @@ local function disabled(reason)
     end
 end
 local function fingerprint()
-    local file,err=io.open('Baldur.exe','rb')
-    if not file then return nil,'cannot read Baldur.exe: '..tostring(err) end
     local ok,result=pcall(function()
-        local size=assert(file:seek('end'),'cannot determine executable size')
-        assert(file:seek('set',0)==0,'cannot read executable header')
-        local header=assert(file:read(64),'missing executable header')
-        assert(#header==64 and header:sub(1,2)=='MZ','invalid executable header')
-        local function u32(text,offset)
-            local a,b,c,d=text:byte(offset+1,offset+4)
-            assert(d,'truncated executable header')
-            return a+b*256+c*65536+d*16777216
+        assert(type(EEex_GetImageBase)=='function' and type(EEex_Read32)=='function','EEex image-header APIs unavailable')
+        local base=EEex_GetImageBase()
+        assert(type(base)=='number' and base>0,'invalid executable image base')
+        local function u32(offset)
+            local value=EEex_Read32(base+offset)
+            return value<0 and value+4294967296 or value
         end
-        local pe=u32(header,60)
-        assert(pe>=64 and pe<=4096 and pe+112<=size,'invalid PE header offset')
-        assert(file:seek('set',pe)==pe,'cannot seek PE header')
-        local fields=assert(file:read(112),'missing PE header')
-        assert(#fields==112 and fields:sub(1,4)=='PE\0\0','invalid PE signature')
-        assert(fields:sub(5,6)=='\100\134' and fields:sub(25,26)=='\11\2','unsupported executable architecture')
-        return string.format('%08X:%08X:%08X:%08X:%d',u32(fields,8),u32(fields,40),u32(fields,80),u32(fields,88),size)
+        assert(u32(0)%65536==0x5A4D,'invalid executable DOS header')
+        local pe=u32(60)
+        assert(pe>=64 and pe<=4096,'invalid PE header offset')
+        assert(u32(pe)==0x4550,'invalid PE signature')
+        assert(u32(pe+4)%65536==0x8664 and u32(pe+24)%65536==0x20B,'unsupported executable architecture')
+        return string.format('%08X:%08X:%08X:%08X',u32(pe+8),u32(pe+40),u32(pe+80),u32(pe+88))
     end)
-    file:close()
     if not ok then return nil,result end
     return result
 end
@@ -50,7 +44,9 @@ local id,err=fingerprint()
 if not id then disabled(err);return end
 local profile=profiles[id]
 if not profile then disabled('unrecognized executable build '..id);return end
-local payload,load_error=loadfile(profile.path)
+if type(loadfile)~='function' then disabled('Lua chunk loader unavailable');return end
+local load_ok,payload,load_error=pcall(loadfile,profile.path)
+if not load_ok then disabled('profile loading failed: '..tostring(payload));return end
 if not payload then disabled('missing or invalid profile '..profile.id..': '..tostring(load_error));return end
 print('[BG Pathfinding Redux] PROFILE_SELECTED package='..MRIP_PackageVersion..' profile='..profile.id..' revision='..profile.revision)
 local ok,runtime_error=pcall(payload)
