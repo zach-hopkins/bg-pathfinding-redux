@@ -1,12 +1,8 @@
 name: Publish checked preview
 
-# One-time publication of the user-requested public naming and logging cleanup.
-# Return to manual-only operation after verification.
+# Publish a future explicitly authorized build manually.
 # Existing release tags are never overwritten.
 on:
-  push:
-    branches: [main]
-    paths: [.github/workflows/publish-preview.yml]
   workflow_dispatch:
 
 permissions:
