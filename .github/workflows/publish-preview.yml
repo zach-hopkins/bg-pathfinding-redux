@@ -4,9 +4,6 @@ name: Publish checked preview
 # Existing release tags are never overwritten.
 on:
   workflow_dispatch:
-  push:
-    branches: [main]
-    paths: [.github/workflows/publish-preview.yml]
 
 permissions:
   contents: read
@@ -17,7 +14,7 @@ concurrency:
 
 jobs:
   publish:
-    if: github.repository == 'zach-hopkins/bg-pathfinding-redux' && (github.event_name == 'workflow_dispatch' || contains(github.event.head_commit.message, '[publish-0.1.5]'))
+    if: github.repository == 'zach-hopkins/bg-pathfinding-redux'
     runs-on: ubuntu-latest
     timeout-minutes: 10
     permissions:
