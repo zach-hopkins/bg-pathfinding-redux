@@ -1,3 +1,54 @@
+# Community support checks — 2026-10-07
+
+Disposable Windows PowerShell fixtures verify hashes, quoted/custom/absolute log
+paths, missing captures, bounded tails, path redaction and read-only inputs.
+Lua fixtures verify safe optional context fields and queue bounds. Real WeiDU
+fixtures verify blank logging activation, custom-path preservation, collector
+installation and rollback. Captures remain opt-in; game behavior is unchanged.
+The lazy Stop bridge adds one assembly body to the earlier 51-body gate.
+
+# 2.7 lazy settle guard correction â€” 2026-10-07
+
+BGEE 2.7 reported `native settle Stop signature mismatch`. The constructor
+address was relocated, but its separate 137-byte guard still described 2.6.
+BG2EE 2.7 had the same stale guard. Both now use actual executable bytes.
+The guard is retained; native bridge logic and movement tuning are unchanged.
+
+A new fixture initializes the embedded lazy factory against actual bytes,
+checks corrupted-guard refusal and relocated bases, and registers/invokes a
+simulated bridge. It does not execute game code. Earlier startup checks did
+not exercise this lazy factory. Both 2.7 fixtures now cover it directly.
+The user confirmed the BGEE/SoD 2.7 retest: "Great working now."
+Setup: Steam 2.7.3.0, DLC Merger 2.1, EEex 1.3.0, revision 56.
+No game was launched by the agent. Publication is tracked separately.
+
+# BG1EE / SoD compatibility acceptance â€” 2026-10-07
+
+The user confirmed both BG1EE and SoD working: "All work on BG1EE/SOD engine."
+Setup: Windows Steam BGEE/SoD 2.6.6.0, DLC Merger 2.1, EEex 1.3.0 minimal,
+and BG Redux revision 55. This records the user's overall acceptance; it does
+not assert individual test results beyond that report or long campaign stability.
+
+Static comparison mapped 94 references in 41 corresponding engine functions,
+all equivalent after relocation. The profile retains 56 native guards. Official
+EEex binary inspection verified 16 member offsets and 6 usertypes; 51 expanded
+assembly bodies passed parsing. Native-byte fixtures pass with visual preference
+OFF/ON, using the actual installed executable and bindings. Movement policy is retained. Shipped profiles additionally contain read-only
+snapshot context; BG2EE 2.7 also receives the lazy Stop guard correction. No agent game launch occurred.
+
+The full-file hash is now advisory at installation. Recognized loaded PE identity
+and native signature/layout checks remain required; changes outside those checks
+are not guaranteed compatible. Unknown executable headers still disable hooks.
+Other storefront builds, EET gameplay, multiplayer, and Wine/Proton/
+CrossOver remain unvalidated.
+
+# Executable hash warning policy
+
+The installer now warns and continues for a modified full-file hash. Native
+header selection and signature/layout checks remain. Real WeiDU tests cover
+warning, installation, preserved preferences, and uninstall of a modified-hash
+fixture. Historical exact-hash refusal results below describe earlier releases.
+
 # Validation of 0.1.3-preview
 
 ## Restricted-Lua startup correction

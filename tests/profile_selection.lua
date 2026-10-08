@@ -59,6 +59,17 @@ local function test(data,expected,mode)
     else expect(#listeners==0 and MRIP_CompatibilityStatus.profile==expected,'accepted profile state')end
     local before=loads;run();expect(loads==before,'duplicate guard')
 end
+local bg1=image(false);local bg1t={};for i=1,#bg1 do bg1t[i]=bg1:sub(i,i)end
+put32(bg1t,136,1620325086)
+put32(bg1t,168,5207248)
+put32(bg1t,208,55713792)
+put32(bg1t,216,0)
+test(table.concat(bg1t),'bgee-steam-2.6.6.0')
+put32(bg1t,136,1780012764)
+put32(bg1t,168,5211312)
+put32(bg1t,208,55721984)
+put32(bg1t,216,7200563)
+test(table.concat(bg1t),'bgee-steam-2.7.3.0')
 local old,new=image(false),image(true)
 test(old,'bg2ee-2.6.6.0');test(new,'bg2ee-steam-2.7.3.0')
 for _,change in ipairs({{208,0x3532001},{136,0},{60,0x1001},{128,0},{132,0},{152,0}})do test(image(true,change),nil)end

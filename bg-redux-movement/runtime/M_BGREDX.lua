@@ -1,9 +1,11 @@
--- BG Pathfinding Redux 0.1.3-preview: select a verified native runtime.
+-- BG Pathfinding Redux 0.1.4-preview: select a verified native runtime.
 -- Unknown executable builds never reach either payload or install mod hooks.
 if MRIP_BaselineRevision or MRIP_DispatchLoaded then return end
 MRIP_DispatchLoaded=true
-MRIP_PackageVersion='0.1.3-preview'
+MRIP_PackageVersion='0.1.4-preview'
 local profiles={
+    ['6A18D6DC:004F84B0:03524000:006DDF33']={id='bgee-steam-2.7.3.0',revision=56,path='bg-redux-movement/runtime/profiles/bgee-steam-2.7.3.0.lua'},
+    ['609432DE:004F74D0:03522000:00000000']={id='bgee-steam-2.6.6.0',revision=55,path='bg-redux-movement/runtime/profiles/bgee-steam-2.6.6.0.lua'},
     ['609437B3:004F74D0:03530000:00000000']={
         id='bg2ee-2.6.6.0',revision=53,
         path='bg-redux-movement/runtime/profiles/bg2ee-2.6.6.0.lua'},

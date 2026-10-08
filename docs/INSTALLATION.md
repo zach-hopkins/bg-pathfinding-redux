@@ -3,8 +3,9 @@
 ## Before installing
 
 Tested setups are Windows BG2EE 2.6.6.0 / EEex 1.2.0 and Windows Steam
-BG2EE 2.7.3.0 / EEex 1.3.0. See `profiles.json` for exact executable hashes.
-Install EEex first and close both the game and its loader before changing files.
+BG2EE 2.7.3.0 / EEex 1.3.0, and Steam BGEE/SoD 2.6.6.0 and 2.7.3.0 / EEex 1.3.0. See `profiles.json` for exact executable hashes.
+For archived Steam/GOG SoD DLC, install DLC Merger before EEex.
+Install EEex and close both the game and its loader before changing files.
 EET is accepted by the installer, but its gameplay validation remains pending.
 This preview does not support multiplayer.
 
@@ -32,7 +33,7 @@ old overlay after closing the game. Do not delete WeiDU-managed files in place o
 uninstalling their component. The duplicate-load guard is a second safeguard;
 it does not replace removing the old installation.
 
-Keep the entire `bg-redux-movement` folder: it holds both runtime profiles.
+Keep the entire `bg-redux-movement` folder: it holds all four runtime profiles.
 The installed selector is `override/M_BGREDX.lua`.
 
 ## Uninstall
@@ -59,21 +60,17 @@ ON route-preference value for fresh installations.
 
 ## Reporting a problem
 
-Include the game/EEex version, mod version, executable SHA256 if available,
-`WeiDU.log`, and clear reproduction steps. If safe to reproduce, start a capture
-with Left Ctrl + Left Shift + F7, reproduce within 20 seconds, and end with F9.
-F8 adds a snapshot. Captures expire automatically after 20 seconds.
+Press Left Ctrl + Left Shift + F7, reproduce a movement issue within 20 seconds,
+then double-click `Collect BG Redux Support.cmd` in the game folder. Send
+`bg-redux-support.log` and reproduction steps. Collect before restarting when
+possible. Startup failures do not require recording. See [support details](SUPPORT.md).
 
-The output log location is configured by `InfinityLoader.ini`. Look for
-`[BG Redux]` entries, `PROFILE_SELECTED`, and `RELEASE_READY` mode values. `PROFILE_SELECTED` reports the current package version; unchanged profile
-`RELEASE_READY` lines retain their earlier payload version. Normal play reports only startup/status/errors;
-routine movement telemetry appears during requested captures or snapshots.
-Review captures before sharing: character names and other details may be personal.
-Attach a save only when useful.
+Installation enables `bg-redux-runtime.log` when the loader log setting is blank;
+an existing custom path is preserved. Uninstall restores the prior loader INI.
 
 | Symptom | First check |
 | --- | --- |
-| Installer says “SKIPPING” | Read the printed reason. Installation requires BG2EE/EET, EEex, and one of the exact supported executable hashes in `profiles.json`; other builds are skipped safely. |
+| Installer says “SKIPPING” | Read the printed reason. Installation requires BGEE/SoD/BG2EE/EET and EEex. Unknown full-file hashes warn; unknown startup identities cannot activate the mod. |
 | Game starts but no allied passage | Launch through InfinityLoader; check F6 state and startup/refusal messages. |
 | An optional feature is unavailable | Inspect the log's signature/layout/backend refusal; do not remove the guard. |
 | Visual preference seems subtle | It is bounded and may retain the native route. It is not continuous steering or guaranteed lanes. |
@@ -86,14 +83,15 @@ or a deliberate uninstall, rather than casually deleting an active overlay.
 
 ## Game updates
 
-One package contains both verified profiles, and the selector rechecks the
+One package contains four verified profiles, and the selector rechecks the
 executable each startup. Switching between the supported 2.6 and Steam 2.7 builds
 does not require manually swapping mod runtimes, provided EEex supports the build.
 
 For a new executable identity, the mod prints `COMPATIBILITY_DISABLED` and shows
 an update-needed message after loading. It does not install movement hooks or
 change saved preferences. Native movement remains available if EEex initializes.
-The installer also skips unknown executable hashes before writing its overlay.
+The installer warns on unknown executable hashes and continues installing its overlay.
+Startup still requires a recognized header identity and passing native checks.
 
 This is safe refusal, not automatic support for arbitrary future engine changes.
 Keep EEex current; an incompatible loader can fail before this mod runs. Steam

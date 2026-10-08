@@ -1,9 +1,9 @@
--- PRIVATE BG2EE Steam 2.7.3.0 / EEex1.3.0 compatibility candidate. Gameplay acceptance pending.
+-- BG1EE Steam 2.7.3.0 / SoD candidate: live acceptance pending.
 -- BG Redux Movement: guarded native profile; public package 0.1.2-preview.
 -- Fresh installs enable all four features; existing settings are preserved.
 -- Generated from frozen52; persistent switches in bg-redux-movement.ini.
 if MRIP_BaselineRevision then return end
-MRIP_BaselineRevision = 54
+MRIP_BaselineRevision = 56
 MRIP_TraceEnabled = false
 local release_config=(function()
 -- Persistent release switches, using EEex's installed INI API.
@@ -4425,4 +4425,4 @@ EEex_Action_AddSpriteStartedActionListener(function(sprite,action)
     if not ok then log("ERROR action-listener "..tostring(err)) end
 end)
 for _,key in ipairs(release_config_warnings)do log('CONFIG_DEFAULT key='..key)end
-log("LOADED revision=54 trace_enabled="..tostring(MRIP_TraceEnabled))
+log("LOADED revision=56 trace_enabled="..tostring(MRIP_TraceEnabled))

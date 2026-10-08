@@ -48,8 +48,8 @@ def binding_layout():
     }
     members, evidence = {}, []
     registrations={}
-    if args.profile=='bg2ee-steam-2.7.3.0':
-        rows=json.loads((root/'tests/fixtures/binding-registrations-2.7.json').read_text())
+    if args.profile in ('bg2ee-steam-2.7.3.0','bgee-steam-2.6.6.0','bgee-steam-2.7.3.0'):
+        rows=json.loads((root/('tests/fixtures/binding-registrations-bgee-2.6.json' if args.profile=='bgee-steam-2.6.6.0' else 'tests/fixtures/binding-registrations-2.7.json')).read_text())
         registrations={int(row['old_rva'],16):int(row['new_rva'],16) for row in rows}
     for path,(rva,name,expected) in specs.items():
         rva=registrations.get(rva,rva)

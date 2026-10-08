@@ -12,7 +12,7 @@
       "checksum": 0,
       "file_size": 7182336
     },
-    "runtime_sha256": "50A501510936EC4099700E1AE9921EDFFF6B9588B10C68E03D0372FDFC4CF230",
+    "runtime_sha256": "E54BE7E3E86A41A952E5D780752BAE6D00FC476C9E714683B95B29A0D16AA67A",
     "runtime_path": "bg-redux-movement/runtime/profiles/bg2ee-2.6.6.0.lua",
     "tested_eeex": "1.2.0",
     "accepted_date": "2026-10-06",
@@ -32,11 +32,65 @@
       "checksum": 7205089,
       "file_size": 7202696
     },
-    "runtime_sha256": "C8563E03D0D251C34CB47FA2FD89F5F3D07BBF56F8000BA9CBABA660C7F018AA",
+    "runtime_sha256": "0C3AB974BFDF0E56DDBCA0E2D4F3E214DE88BC9BB4EC9119637771F233263733",
     "runtime_path": "bg-redux-movement/runtime/profiles/bg2ee-steam-2.7.3.0.lua",
     "tested_eeex": "1.3.0",
     "accepted_date": "2026-10-07",
     "accepted_runtime_sha256": "1E8F7204AEB56BC2C38A6DA0EC1808BE533499F26BD8B059C5397FAD6881F832",
-    "memory_fingerprint": "6A18D73D:004F84B0:03532000:006DF0E1"
+    "memory_fingerprint": "6A18D73D:004F84B0:03532000:006DF0E1",
+    "settle_stop_guard_corrected": "2026-10-07"
+  },
+  {
+    "id": "bgee-steam-2.6.6.0",
+    "revision": 55,
+    "exe_sha256": "9634C3E685A9D2F467D663B2E211065F9D4D84FD3115B89AC24DCA2071D618B1",
+    "exe_md5": "46c1b3bc2710af125525042d6d3c6eab",
+    "fingerprint": "609432DE:004F74D0:03522000:00000000:7124992",
+    "memory_fingerprint": "609432DE:004F74D0:03522000:00000000",
+    "pe": {
+      "timestamp": 1620325086,
+      "entrypoint": 5207248,
+      "image_size": 55713792,
+      "checksum": 0,
+      "file_size": 7124992
+    },
+    "runtime_sha256": "D609FC9F165DDC338079A3A20D2337D870E3229CCF2C728E451F777B093EF356",
+    "runtime_path": "bg-redux-movement/runtime/profiles/bgee-steam-2.6.6.0.lua",
+    "tested_eeex": "1.3.0",
+    "gameplay_acceptance": "user-confirmed",
+    "campaigns": [
+      "BGEE",
+      "SoD"
+    ],
+    "accepted_date": "2026-10-07",
+    "acceptance_quote": "All work on BG1EE/SOD engine.",
+    "accepted_runtime_sha256": "D7994D36F432D713BF6F15F238CF14777CF437C00F638865B8DCDB1206F7813F"
+  },
+  {
+    "id": "bgee-steam-2.7.3.0",
+    "revision": 56,
+    "exe_sha256": "187F89E1033999B2C8EAE6591641325BA012071030364767F42221ECAE92372A",
+    "exe_md5": "eb8686062c6704ad9d95d4cda12487eb",
+    "fingerprint": "6A18D6DC:004F84B0:03524000:006DDF33:7145352",
+    "memory_fingerprint": "6A18D6DC:004F84B0:03524000:006DDF33",
+    "pe": {
+      "timestamp": 1780012764,
+      "entrypoint": 5211312,
+      "image_size": 55721984,
+      "checksum": 7200563,
+      "file_size": 7145352
+    },
+    "runtime_sha256": "BB41BEFFAF8B71B3D86BF04BCBEFD904640059888E8AC626BAC145759BB2A98E",
+    "runtime_path": "bg-redux-movement/runtime/profiles/bgee-steam-2.7.3.0.lua",
+    "tested_eeex": "1.3.0",
+    "gameplay_acceptance": "user-confirmed",
+    "campaigns": [
+      "BGEE",
+      "SoD"
+    ],
+    "settle_stop_guard_corrected": "2026-10-07",
+    "accepted_date": "2026-10-07",
+    "acceptance_quote": "Great working now.",
+    "accepted_runtime_sha256": "981A773820184C614FAE8EFB1C1594205279C4BDBDDD4A6831E9BEFEDC295694"
   }
 ]

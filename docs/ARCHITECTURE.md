@@ -66,12 +66,13 @@ the loaded executable header through `EEex_GetImageBase` and `EEex_Read32` and
 selects a known PE identity without Lua file I/O. Unknown
 identities return before loading a native runtime; a diagnostic and an in-game
 message explain the refusal. Settings are not rewritten. Loaded header identity is a
-selector, not a cryptographic integrity check: the installer checks exact MD5
+selector, not a cryptographic integrity check: the installer warns on unrecognized MD5
 hashes, release tooling checks SHA256 hashes, and each runtime checks native
 signatures and field layouts.
 
 `bg-redux-movement/runtime/profiles` contains the self-contained revision 53
-(2.6) and revision 54 (Steam 2.7) implementations with public naming and logging
+(BG2EE 2.6), revision 54 (BG2EE Steam 2.7), and revision 55
+(BGEE/SoD Steam 2.6) implementations with public naming and logging
 cleanup. `profiles.json` records both their shipped hashes and the earlier
 accepted runtime hashes. The 0.1.2 presentation changes rename the settings path,
 clean feedback, suppress routine telemetry outside explicit captures, and silence

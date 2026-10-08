@@ -13,10 +13,12 @@ import sys
 ROOT = Path(__file__).resolve().parent.parent
 WORK = ROOT / 'tests/.work'
 RUNTIME = ROOT / 'bg-redux-movement/runtime/M_BGREDX.lua'
-PIN = 'E97385999D3BDA5DDEFF26DC442E2CDC847608E1D9F859AF44BA10CF371F35E2'
+PIN = '68E166897F3B0377FDDA95912B84A2118118B88AC04B3EC9DE025ABA47EABD37'
 PROFILE_PINS = {
-    'bg2ee-2.6.6.0': '50A501510936EC4099700E1AE9921EDFFF6B9588B10C68E03D0372FDFC4CF230',
-    'bg2ee-steam-2.7.3.0': 'C8563E03D0D251C34CB47FA2FD89F5F3D07BBF56F8000BA9CBABA660C7F018AA',
+    'bgee-steam-2.7.3.0': 'BB41BEFFAF8B71B3D86BF04BCBEFD904640059888E8AC626BAC145759BB2A98E',
+    'bgee-steam-2.6.6.0': 'D609FC9F165DDC338079A3A20D2337D870E3229CCF2C728E451F777B093EF356',
+    'bg2ee-2.6.6.0': 'E54BE7E3E86A41A952E5D780752BAE6D00FC476C9E714683B95B29A0D16AA67A',
+    'bg2ee-steam-2.7.3.0': '0C3AB974BFDF0E56DDBCA0E2D4F3E214DE88BC9BB4EC9119637771F233263733',
 }
 
 def sha(path):
@@ -25,7 +27,7 @@ def sha(path):
 def check_integrity():
     meta = json.loads((ROOT/'release.json').read_text(encoding='utf-8'))
     assert sha(RUNTIME) == PIN == meta['runtime_sha256'], 'Shipped selector changed'
-    assert meta['revision'] == 54 and meta['policy_revision'] == 52
+    assert meta['revision'] == 56 and meta['policy_revision'] == 52
     profiles=json.loads((ROOT/'profiles.json').read_text(encoding='utf-8'))
     assert profiles==meta['profiles'] and {p['id'] for p in profiles}==set(PROFILE_PINS)
     loader=RUNTIME.read_text(encoding='utf-8')
@@ -43,11 +45,11 @@ def check_integrity():
         assert config.get('Movement',key) == '1' and meta['defaults'][key]
     for profile in profiles:
         source=(ROOT/profile['runtime_path']).read_text(encoding='utf-8')
-        for name in ('bg_redux_release_config.lua','bg_redux_release_bootstrap.lua','bg_redux_public_logging.lua'):
+        for name in ('bg_redux_release_config.lua','bg_redux_release_bootstrap.lua','bg_redux_public_logging.lua','bg_redux_support_context.lua'):
             fragment = (ROOT/'tests/fixtures'/name).read_text(encoding='utf-8')
             assert source.count(fragment) == 1, 'Fixture no longer matches accepted profile: '+name
     tp2 = (ROOT/'bg-redux-movement/bg-redux-movement.tp2').read_text(encoding='utf-8')
-    for text in ('GAME_IS ~bg2ee eet~','DESIGNATED 0','FILE_EXISTS ~EEex.dll~',
+    for text in ('GAME_IS ~bgee sod bg2ee eet~','DESIGNATED 0','FILE_EXISTS ~EEex.dll~',
                  'FILE_EXISTS ~InfinityLoader.exe~','NOT FILE_EXISTS ~bg-redux-movement.ini~',
                  'COPY + ~bg-redux-movement/defaults.ini~ ~bg-redux-movement.ini~',
                  'COPY ~bg-redux-movement/runtime/M_BGREDX.lua~ ~override/M_BGREDX.lua~',
@@ -55,9 +57,12 @@ def check_integrity():
                  'NOT FILE_EXISTS ~override/M_MRIP.lua~',
                  'COPY + ~mrdx-movement.ini~ ~bg-redux-movement.ini~'):
         assert text in tp2, text
+    assert 'REQUIRE_PREDICATE (FILE_MD5' not in tp2
+    assert 'ACTION_IF NOT (FILE_MD5' in tp2 and 'WARNING: Executable hash differs' in tp2
+    assert 'REQUIRE_PREDICATE (FILE_EXISTS ~Baldur.exe~)' in tp2
     for profile in profiles:
         assert 'FILE_MD5 ~Baldur.exe~ ~'+profile['exe_md5']+'~' in tp2
-    print('Integrity: MIT license, dispatcher and both shipped profile hashes, metadata, four ON defaults, fixture linkage, exact executable installer gates passed')
+    print('Integrity: MIT license, dispatcher and all shipped profile hashes, metadata, four ON defaults, fixture linkage, executable hash warnings and native profile pins passed')
     return meta
 
 def lua_check(script, lua=None, dll=None):
@@ -107,6 +112,8 @@ def main():
         ran.append('configuration: 326 assertions')
         lua_check(ROOT/'tests/public_logging.lua',args.lua,dll)
         ran.append('quiet public logging and explicit diagnostics')
+        lua_check(ROOT/'tests/support_context.lua',args.lua,dll)
+        ran.append('safe diagnostic context')
         lua_check(ROOT/'tests/profile_selection.lua',args.lua,dll)
         ran.append('profile selection and unsupported-build refusal')
         if args.game:
@@ -116,9 +123,13 @@ def main():
             (WORK/'native').mkdir(exist_ok=True)
             subprocess.run([sys.executable,str(ROOT/'tools/inspect_bindings.py'),'--game',str(game),'--profile',profile['id']],
                            cwd=ROOT,check=True,timeout=30)
+            settle_entry=WORK/'settle-signature-entry.lua'
+            settle_entry.write_text('MRIP_TEST_GAME_PATH='+json.dumps(game.as_posix())+'\nMRIP_TEST_RUNTIME_PATH='+json.dumps(profile['runtime_path'])+'\ndofile(\"tests/settle_native_signature.lua\")\n',encoding='utf-8')
+            lua_check(settle_entry,args.lua,dll)
+            ran.append(profile['id']+': lazy settle guard and registration against actual bytes')
             fixture=(ROOT/'tests/native_runtime.lua').read_text(encoding='utf-8')
-            if profile['revision']==54:
-                mappings={int(a,16):b for a,b in json.loads((ROOT/'tests/fixtures/native-rvas-2.7.json').read_text()).items()}
+            if profile['revision'] in (54,55,56):
+                mappings={int(a,16):b for a,b in json.loads((ROOT/('tests/fixtures/native-rvas-bgee-2.7.json' if profile['revision']==56 else 'tests/fixtures/native-rvas-bgee-2.6.json' if profile['revision']==55 else 'tests/fixtures/native-rvas-2.7.json')).read_text()).items()}
                 def rva(match):
                     value=int(match.group(),16)
                     if value in mappings:return f'0x{mappings[value]:X}'

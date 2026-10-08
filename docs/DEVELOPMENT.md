@@ -6,7 +6,7 @@ Python 3.10+ and LuaJIT are sufficient for portable integrity/configuration chec
 python tools/checks.py --lua luajit
 ```
 
-CI runs that command. It checks the selector and both accepted profiles, installer/defaults
+CI runs that command. It checks the selector and all four accepted profiles, installer/defaults
 metadata, linked configuration/logging fixtures, and simulated settings/bootstrap
 behavior. Quiet-log fixtures check suppressed routine telemetry, retained status/errors,
 explicit snapshots/captures, and startup chat suppression.
@@ -14,7 +14,7 @@ It does not run gameplay or native hooks on the GitHub runner.
 
 ## Native offline fixture on Windows
 
-Supply your own pinned BG2EE/EEex installation. It is read-only input:
+Supply your own pinned BGEE/SoD or BG2EE/EEex installation. It is read-only input:
 
 ```powershell
 python tools/checks.py --game "D:/Games/BG2EE"
@@ -26,14 +26,14 @@ State/clock/INI interactions are simulated. Both missing-file OFF fallback and
 package-configured ON route preference are checked. No game process is started.
 
 You may supply `--lua-dll` explicitly if the installed LuaJIT DLL is elsewhere.
-The fixture recognizes both tested executable hashes and selects the corresponding
+The fixture recognizes the four tested executable hashes and selects the corresponding
 binding-registration metadata and native fixture addresses for EEex 1.2.0 or
 1.3.0. It exercises the actual package selector before each payload. Do not commit
 game files. Profile-selection refusal cases also run in portable CI.
 
 ## Installer check
 
-Use a local unmodified BG2EE resource set and the official Windows WeiDU 251:
+Use a local unmodified BGEE/SoD or BG2EE resource set and the official Windows WeiDU 251:
 
 ```powershell
 python tools/test_installer.py --weidu ".vendor/weidu.exe" --game "D:/Games/BG2EE"
@@ -42,10 +42,16 @@ python tools/test_installer.py --weidu ".vendor/weidu.exe" --game "D:/Games/BG2E
 Fresh BG2EE and EET-marker resource labs are created under `tests/.work`.
 Checks cover fresh install, previous-overlay restoration, removal of a new overlay,
 preservation of a customized OFF setting, unchanged dialogue/key resources,
-refusal of a modified executable hash before installing an overlay, old-component
+a warning and successful installation for a modified executable hash, old-component
 and manual-overlay refusal, and migration of legacy preferences after uninstall.
 Labs are retained for inspection. They contain copies of local game resources and
 must not be uploaded.
+
+## Support collector check
+
+On Windows, `python tools/test_support_collector.py` exercises disposable logs,
+file identities, redaction, missing information, bounded output and unchanged
+inputs. CI runs it on a Windows runner. It does not launch the game.
 
 ## Build a Windows release
 
@@ -79,8 +85,8 @@ must produce the same SHA256.
 ## Release preparation
 
 - Retain the MIT license and keep third-party terms separate.
-- Keep both accepted payload hashes until a new gameplay revision is intentionally
-  validated; do not weaken hash or executable guards just to pass checks.
+- Keep the accepted payload hashes until a new gameplay revision is intentionally
+  validated; preserve runtime header, signature and layout guards; installer hash differences warn.
 - Run portable checks and applicable native/installer checks.
 - Build the ZIP and check its install layout and hashes.
 - Attach the ZIP and checksum file to a draft **prerelease** named for the version in `release.json`.

@@ -40,6 +40,9 @@ def main():
         'bg-redux-movement/third_party/weidu/source-v251.00.zip':source,
         'bg-redux-movement/third_party/weidu/provenance.json':(ROOT/'tools/weidu-provenance.json').read_bytes(),
     }
+    files['bg-redux-movement/support/Collect BG Redux Support.cmd']=(ROOT/'bg-redux-movement/support/Collect BG Redux Support.cmd').read_bytes()
+    files['Collect BG Redux Support.cmd']=(ROOT/'bg-redux-movement/support/Collect BG Redux Support.cmd').read_bytes()
+    files['bg-redux-movement/support/collect-support.ps1']=(ROOT/'bg-redux-movement/support/collect-support.ps1').read_bytes()
     files['bg-redux-movement/profiles.json']=(ROOT/'profiles.json').read_bytes()
     for profile in meta['profiles']:
         files[profile['runtime_path']]=(ROOT/profile['runtime_path']).read_bytes()

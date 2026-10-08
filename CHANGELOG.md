@@ -1,13 +1,27 @@
 # Changelog
 
-## 0.1.3-preview — 2026-10-07
+## 0.1.4-preview â€” 2026-10-07
+
+- Add user-confirmed Windows Steam BGEE and SoD 2.6.6.0 / EEex 1.3.0 compatibility.
+- Add revisions 55/56 with relocated native addresses for BGEE/SoD 2.6 and 2.7.
+- Confirm BGEE/SoD 2.7.3.0 / EEex 1.3.0 after correcting the lazy settle guard.
+- Correct that guard in both 2.7 profiles without changing bridge logic.
+- Add one-file community support collection and richer opt-in snapshots.
+- Enable a blank loader log setting, preserve custom paths, and restore it on uninstall.
+- Document DLC Merger before EEex for archived SoD distributions.
+
+- Warn and continue installation when the full executable hash differs from known builds.
+- Retain startup PE profile selection and native signature/layout checks.
+- Hash warnings do not certify compatibility for patches outside guarded code regions.
+
+## 0.1.3-preview â€” 2026-10-07
 
 - Fix selector startup when the game does not expose Lua `io`: use EEex reads
   of the loaded executable header instead. Movement profiles are unchanged.
 - Add io-disabled selector/integrated fixtures and contain missing chunk-loader
   failures. Exact installer hashes and native guards remain in place.
 
-## 0.1.2-preview — 2026-10-07
+## 0.1.2-preview â€” 2026-10-07
 
 - Rename the public folder/installer/settings to `bg-redux-movement`, and the overlay
   to `M_BGREDX.lua`; keep the GitHub project name.

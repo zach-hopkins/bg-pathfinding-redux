@@ -19,3 +19,12 @@ jobs:
         run: python tools/checks.py --lua luajit
       - name: Syntax-check Python tooling
         run: python -m compileall -q tools
+  windows-support:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Check one-file support collection
+        run: python tools/test_support_collector.py

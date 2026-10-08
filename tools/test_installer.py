@@ -24,6 +24,9 @@ def exercise(weidu, game, eet):
         (lab/name).write_bytes(b'')
     if eet:
         (lab/'override/EET.flag').write_bytes(b'')
+    loader_ini=lab/'InfinityLoader.ini'
+    original_ini=b'[General]\r\nLogFile=\r\nDebug=0\r\n'
+    loader_ini.write_bytes(original_ini)
     overlay=lab/'override/M_BGREDX.lua'
     original=b'-- existing movement overlay fixture\r\n'
     overlay.write_bytes(original)
@@ -33,7 +36,7 @@ def exercise(weidu, game, eet):
     key=sha(lab/'chitin.key')
     config=lab/'bg-redux-movement.ini'
     runtime=(ROOT/'bg-redux-movement/runtime/M_BGREDX.lua').read_bytes()
-    def command(action,success=True,tp2='bg-redux-movement/bg-redux-movement.tp2',reason='Unsupported executable'):
+    def command(action,success=True,tp2='bg-redux-movement/bg-redux-movement.tp2',reason='Unused default refusal reason'):
         result=subprocess.run([str(weidu),'--noautoupdate','--skip-at-view','--language','0',
                                tp2,action,'0'],
                               cwd=lab,capture_output=True,text=True,timeout=30)
@@ -45,14 +48,21 @@ def exercise(weidu, game, eet):
             assert 'SKIPPING:' in result.stdout and reason in result.stdout and 'SUCCESSFULLY INSTALLED' not in result.stdout,result.stdout+result.stderr
     command('--force-install-list')
     assert overlay.read_bytes()==runtime
+    assert 'LogFile=bg-redux-runtime.log' in loader_ini.read_text()
+    assert (lab/'Collect BG Redux Support.cmd').is_file()
     assert config.read_bytes()==(ROOT/'bg-redux-movement/defaults.ini').read_bytes()
     custom=b'[Movement]\r\nMovement=0\r\nAttackSpacing=1\r\nGentleSettle=0\r\nRoutePreference=0\r\n'
     config.write_bytes(custom)
     command('--force-uninstall-list')
     assert overlay.read_bytes()==original and config.read_bytes()==custom
+    assert loader_ini.read_bytes()==original_ini
+    assert not (lab/'Collect BG Redux Support.cmd').exists()
+    custom_ini=b'[General]\r\nLogFile=existing custom.log\r\nDebug=0\r\n'
+    loader_ini.write_bytes(custom_ini)
     overlay.unlink() # The single named file in this freshly created fixture.
     command('--force-install-list')
     assert overlay.read_bytes()==runtime and config.read_bytes()==custom
+    assert loader_ini.read_bytes()==custom_ini
     command('--force-uninstall-list')
     assert not overlay.exists() and config.read_bytes()==custom
     assert sha(lab/'lang/en_US/dialog.tlk')==tlk and sha(lab/'chitin.key')==key
@@ -82,15 +92,20 @@ def exercise(weidu, game, eet):
     assert overlay.read_bytes()==runtime
     command('--force-uninstall-list')
     assert not overlay.exists() and config.read_bytes()==custom
-    # A future/modified executable must be rejected before creating an overlay.
+    # A modified full-file hash warns and installs; runtime identity/site checks remain.
     with (lab/'Baldur.exe').open('ab') as file:file.write(b'future-build-fixture')
-    command('--force-install-list',success=False)
+    command('--force-install-list')
+    assert overlay.read_bytes()==runtime and config.read_bytes()==custom
+    output=(lab/'installer-output.txt').read_text(encoding='utf-8')
+    assert 'WARNING: Executable hash differs from the verified builds.' in output
+    command('--force-uninstall-list')
     assert not overlay.exists() and config.read_bytes()==custom
-    assert 'BG-REDUX-MOVEMENT' not in (lab/'WeiDU.log').read_text().upper()
-    return dict(game='EET' if eet else 'BG2EE',passed=True,overlay_restored=True,
+    installed_lines=[line for line in (lab/'WeiDU.log').read_text().upper().splitlines() if not line.lstrip().startswith('//')]
+    assert not any('BG-REDUX-MOVEMENT' in line for line in installed_lines)
+    return dict(game='EET-marker lab' if eet else 'BGEE/SoD' if hashlib.sha256((game/'Baldur.exe').read_bytes()).hexdigest().upper()in ('9634C3E685A9D2F467D663B2E211065F9D4D84FD3115B89AC24DCA2071D618B1','187F89E1033999B2C8EAE6591641325BA012071030364767F42221ECAE92372A') else 'BG2EE',passed=True,overlay_restored=True,
                 new_overlay_removed=True,defaults_created=True,settings_preserved=True,
                 dialogue_and_key_unchanged=True,unrelated_overlay_unchanged=True,
-                unknown_executable_refused=True,legacy_component_refused=True,
+                modified_executable_warned=True,modified_executable_installed=True,blank_logging_enabled=True,custom_log_preserved=True,loader_ini_restored=True,collector_installed=True,legacy_component_refused=True,
                 manual_legacy_overlay_refused=True,legacy_settings_migrated=True)
 
 def main():

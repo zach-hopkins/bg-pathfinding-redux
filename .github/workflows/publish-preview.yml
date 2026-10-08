@@ -4,17 +4,20 @@ name: Publish checked preview
 # Existing release tags are never overwritten.
 on:
   workflow_dispatch:
+  push:
+    branches: [main]
+    paths: [.github/workflows/publish-preview.yml]
 
 permissions:
   contents: read
 
 concurrency:
-  group: publish-v0.1.3-preview
+  group: publish-v0.1.4-preview
   cancel-in-progress: false
 
 jobs:
   publish:
-    if: github.repository == 'zach-hopkins/bg-pathfinding-redux'
+    if: github.repository == 'zach-hopkins/bg-pathfinding-redux' && (github.event_name == 'workflow_dispatch' || contains(github.event.head_commit.message, '[publish-0.1.4]'))
     runs-on: ubuntu-latest
     timeout-minutes: 10
     permissions:
@@ -39,10 +42,10 @@ jobs:
           python - <<'PY'
           import hashlib, zipfile
           from pathlib import Path
-          archive = Path('dist/bg-redux-movement-0.1.3-preview-windows.zip')
+          archive = Path('dist/bg-redux-movement-0.1.4-preview-windows.zip')
           with zipfile.ZipFile(archive) as z:
               actual = hashlib.sha256(z.read('manifest.json')).hexdigest()
-              expected = '8b3474e5e66b500afd17732dee60723562a4fc240f2609518153461cb8951ad0'
+              expected = 'f6737847f2d3130a940af5a8fa3b863a191a29e47347c93faf29efc9a30a10a3'
               assert actual == expected, 'Package payload differs from the reviewed release'
           PY
       - name: Create a draft with both assets, then publish the prerelease
@@ -50,11 +53,11 @@ jobs:
           GH_TOKEN: ${{ github.token }}
           GH_REPO: ${{ github.repository }}
         run: |
-          gh release create v0.1.3-preview \
-            dist/bg-redux-movement-0.1.3-preview-windows.zip \
+          gh release create v0.1.4-preview \
+            dist/bg-redux-movement-0.1.4-preview-windows.zip \
             dist/SHA256SUMS.txt \
             --target "$GITHUB_SHA" \
-            --title "BG Pathfinding Redux 0.1.3-preview" \
+            --title "BG Pathfinding Redux 0.1.4-preview" \
             --notes-file docs/RELEASE_NOTES.md \
             --prerelease --draft
-          gh release edit v0.1.3-preview --draft=false
+          gh release edit v0.1.4-preview --draft=false

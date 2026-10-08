@@ -1,36 +1,53 @@
-# BG Pathfinding Redux 0.1.3-preview
+# BG Pathfinding Redux 0.1.4-preview
 
-Fixes the startup error `M_BGREDX.lua:25: attempt to index global 'io' (a nil value)`
-in the public version selector. The game's Lua environment does not expose the I/O
-library that the previous offline harness assumed. The corrected selector uses
-EEex memory reads of the loaded executable header and contains loading failures.
-Both movement profiles, native hooks, settings and tuning are unchanged from 0.1.2.
+Adds user-confirmed Windows Steam BGEE and Siege of Dragonspear **2.6.6.0 and
+2.7.3.0** with EEex 1.3.0, alongside the accepted BG2EE 2.6.6.0 and Steam 2.7.3.0
+profiles. Includes easy, single-file community diagnostics.
+
+## Changes
+
+- Add BGEE/SoD profiles 55 and 56 with relocated native addresses.
+- Correct the lazy gentle-settle Stop guard in both 2.7 profiles.
+- Warn and continue installation on an unfamiliar full executable hash.
+  Recognized startup headers and native signature/layout guards remain required.
+- Add **`Collect BG Redux Support.cmd`**, which creates **`bg-redux-support.log`**
+  with versions/hashes, package/profile metadata, settings, mods, and bounded logs.
+- Add area/creature and package/profile context to requested snapshots.
+- Enable loader logging when its existing setting is blank; preserve custom paths
+  and restore the previous loader INI on uninstall. No automatic uploads.
+- Retain movement policy and feature defaults; verbose recording remains opt-in.
 
 ## Install or upgrade
 
-Close the game, extract `bg-redux-movement-0.1.3-preview-windows.zip` beside
-`Baldur.exe`, and install/reinstall component 0 using `setup-bg-redux-movement.exe`.
-Launch through `InfinityLoader.exe`; keep the `bg-redux-movement` folder.
-Existing settings survive reinstall. Upgrades from 0.1.0/0.1.1 still require
-uninstalling the old component with `setup-mrdx-movement.exe` first; legacy settings
-are copied only when the new settings file is absent. See installation instructions.
+For archived Steam/GOG SoD DLC, install DLC Merger first, then EEex. Close the
+game, extract **`bg-redux-movement-0.1.4-preview-windows.zip`** beside `Baldur.exe`,
+and install/reinstall component 0 using `setup-bg-redux-movement.exe`. Launch
+through `InfinityLoader.exe` and retain the `bg-redux-movement` folder. Existing
+settings survive reinstall. Upgrades from 0.1.0/0.1.1 require uninstalling the old
+named component first.
 
-## Checks and scope
+Movement, attack spacing, gentle settle and optional visual preference default ON.
+Normal play keeps compact startup/status/errors; recording is OFF.
 
-Both supported executable profiles pass integrated offline checks with `io=nil`,
-including actual executable header/native bytes and visual preference OFF/ON.
-206 selector assertions cover known identities, malformed/unknown headers,
-missing APIs, missing/failing loaders and duplicate loading. Configuration and
-quiet-log checks pass. These checks do not emulate gameplay. Live startup of this
-hotfix remains pending tester confirmation; no agent game launch was performed.
+## Reporting an issue
 
-Supported profiles remain Windows BG2EE 2.6.6.0 / EEex 1.2.0 and Steam BG2EE
-2.7.3.0 / EEex 1.3.0. Unknown header identities refuse safely; exact installer hashes
-and native guards remain. The selected package version is in `PROFILE_SELECTED`;
-unchanged profile readiness messages retain their earlier payload version.
+Hold Left Ctrl + Left Shift, press F7, and reproduce a movement issue within
+20 seconds. Then double-click **`Collect BG Redux Support.cmd`** and send
+**`bg-redux-support.log`** with a short description. Collect before restarting
+when possible. Startup failures do not need a capture. Review the report before
+sharing: character/mod names may appear. Saves and crash dumps are excluded.
 
-Normal play keeps compact startup/status/errors; detailed telemetry is requested
-with Left Ctrl + Left Shift + F7/F8/F9. Movement defaults ON and F6 toggles it.
-Single player only; EET gameplay, other storefront builds, multiplayer and
-Wine/Proton/CrossOver remain unvalidated. Verify the ZIP with `SHA256SUMS.txt`.
-Original code/docs are MIT licensed; bundled WeiDU retains GPL-2.0 with source.
+## Validation and scope
+
+BG1/SoD acceptance is user-reported, including the corrected 2.7 settle retest.
+Offline checks cover relocated engine functions/references, native guards and
+bindings, assembly expansion, restricted-Lua selection, real executable bytes
+with preference OFF/ON, lazy settle initialization, real WeiDU install/rollback,
+and collector fixtures. These checks do not emulate gameplay or launch the game.
+
+Hash warnings do not certify arbitrary executable patches or support new
+versions automatically. Other storefront builds, EET gameplay, multiplayer,
+long campaign stability, and Wine/Proton/CrossOver remain unvalidated.
+
+Verify the ZIP with **`SHA256SUMS.txt`**. Original code/docs are MIT; bundled
+WeiDU retains GPL-2.0 with corresponding source.

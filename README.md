@@ -2,7 +2,7 @@
 
 **Party members should be able to move through their own party.**
 
-BG Pathfinding Redux is an EEex mod for Baldur's Gate II: Enhanced Edition that
+BG Pathfinding Redux is an EEex mod for Baldur's Gate: Enhanced Edition, Siege of Dragonspear, and Baldur's Gate II: Enhanced Edition that
 removes allied creature obstruction from movement planning and execution.
 Allies can flow through one another and through cramped doorways. Walls, closed
 doors, neutral NPCs, and enemies retain their native blocking behavior.
@@ -25,32 +25,34 @@ toggled independently. Existing saved settings survive reinstall.
 
 ## Compatibility
 
-**Version 0.1.3-preview** automatically selects the accepted 2.6 or 2.7 runtime.
+**Version 0.1.4-preview** automatically selects one of four verified executable profiles.
 
 | Setup | Status |
 | --- | --- |
 | Windows BG2EE 2.6.6.0 with EEex 1.2.0, single player | Accepted revision 53 |
 | Windows Steam BG2EE 2.7.3.0 with EEex 1.3.0, single player | Revision 54 confirmed working October 7, 2026 |
 | EET using a supported BG2EE executable | Installer verified; live EET gameplay acceptance pending |
-| Other executable versions, BGEE, or IWDEE | Not validated |
+| Windows Steam BGEE and SoD 2.6.6.0 with EEex 1.3.0, single player | Revision 55 confirmed working October 7, 2026 |
+| Windows Steam BGEE and SoD 2.7.3.0 with EEex 1.3.0, single player | Revision 56 confirmed working October 7, 2026 |
+| Other executable versions or IWDEE | Not validated |
 | Multiplayer | Not supported by this preview; several paths deliberately decline network work |
 | Linux through Wine/Proton; macOS through Wine/CrossOver | Potential Windows-executable routes; this mod has not been tested there |
 | Native Linux or macOS game executables | Not supported by these Windows x64 hooks |
 
 The exact tested executable hashes and profile revisions are listed in
-[profiles.json](profiles.json). The installer accepts those executable hashes.
+[profiles.json](profiles.json). A different executable hash produces an installer warning and installation continues.
 At startup, a small loader selects a known loaded-image PE identity, then the selected
 runtime verifies native signatures and field layouts before installing hooks.
 Unknown build identities leave the mod disabled, preserve settings, and report
 that an update is needed. This preserves native movement when EEex initializes.
 
-This handles the two known versions without manually replacing the runtime. It
+This handles the four known executable profiles without manually replacing the runtime. It
 does not guarantee compatibility with future patches, or prevent EEex itself
 from needing an update. See [game updates](docs/INSTALLATION.md#game-updates).
 
 ## Installation
 
-1. Close the game and install [EEex](https://github.com/Bubb13/EEex/releases).
+1. Close the game. For archived Steam/GOG SoD DLC, install [DLC Merger](https://github.com/Argent77/A7-DlcMerger/releases) first, then [EEex](https://github.com/Bubb13/EEex/releases).
 2. Download the **Windows installer ZIP** from this repository's
    [Releases](https://github.com/zach-hopkins/bg-pathfinding-redux/releases).
 3. Extract beside `Baldur.exe`, preserving the `bg-redux-movement` folder.
@@ -89,6 +91,14 @@ prefix. Automatic startup does not add toggle instructions to game chat.
 Detailed diagnostics are off by default. With the same modifiers, **F7** starts a
 20-second capture, **F8** takes a snapshot, and **F9** ends the capture early.
 Recording does not enable or disable movement.
+
+## Support reports
+
+For a movement issue, press **Left Ctrl + Left Shift + F7** and reproduce within
+20 seconds. Then double-click **`Collect BG Redux Support.cmd`** in the game folder
+and send **`bg-redux-support.log`** with a short description. Collect before
+restarting when possible. Startup failures can be collected without a capture.
+See [support instructions and report contents](docs/SUPPORT.md).
 
 ## Design and limitations
 
