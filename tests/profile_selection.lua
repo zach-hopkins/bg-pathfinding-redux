@@ -20,7 +20,7 @@ local function image(newer,change)
     if change then put32(t,change[1],change[2])end
     return table.concat(t)
 end
-local function test(data,expected,mode)
+local function test(data,expected,mode,hint,selection)
     MRIP_BaselineRevision=nil;MRIP_DispatchLoaded=nil;MRIP_TraceEnabled=nil;MRIP_CompatibilityStatus=nil
     local loads,printed,listeners,displayed=0,{}, {},{}
     io=nil
@@ -33,6 +33,11 @@ local function test(data,expected,mode)
     end
     if mode=='missing-api' then EEex_Read32=nil end
     loadfile=function(path)
+        if path=='bg-redux-movement/installed-profile.lua' then
+            if hint=='load-throw' then error('hint loader fixture failed') end
+            if not hint then return nil,'no hint fixture' end
+            return function() if hint=='throw' then error('hint fixture failed')end;return hint end
+        end
         loads=loads+1
         expect(path=='bg-redux-movement/runtime/profiles/'..expected..'.lua','correct profile selected')
         if mode=='missing' then return nil,'missing payload fixture' end
@@ -51,12 +56,17 @@ local function test(data,expected,mode)
     expect(pcall(run),'selector must not throw with io absent')
     local supported=expected~=nil and mode==nil
     expect(MRIP_CompatibilityStatus.supported==supported,'compatibility status')
-    expect(loads==((expected and mode~='missing-loader') and 1 or 0),'unknown builds never load a payload')
+    expect(loads==((expected and mode~='missing-loader') and 1 or 0),'one candidate payload at most')
     if not supported then
         expect(#listeners==1,'one visible refusal message');listeners[1]()
         expect(#displayed==1 and displayed[1]:find('Native movement remains active',1,true),'native fallback')
         expect(table.concat(printed):find('COMPATIBILITY_DISABLED',1,true),'refusal logged')
-    else expect(#listeners==0 and MRIP_CompatibilityStatus.profile==expected,'accepted profile state')end
+    else
+        expect(#listeners==0 and MRIP_CompatibilityStatus.profile==expected,'accepted profile state')
+        expect(MRIP_CompatibilityStatus.selection==(selection or 'exact-header'),'selection provenance')
+        expect(MRIP_CompatibilityStatus.unfamiliar==(selection~=nil),'unfamiliar-build status')
+        if selection then expect(table.concat(printed):find('COMPATIBILITY_WARNING',1,true),'variant warning retained')end
+    end
     local before=loads;run();expect(loads==before,'duplicate guard')
 end
 local bg1=image(false);local bg1t={};for i=1,#bg1 do bg1t[i]=bg1:sub(i,i)end
@@ -72,10 +82,18 @@ put32(bg1t,216,7200563)
 test(table.concat(bg1t),'bgee-steam-2.7.3.0')
 local old,new=image(false),image(true)
 test(old,'bg2ee-2.6.6.0');test(new,'bg2ee-steam-2.7.3.0')
-for _,change in ipairs({{208,0x3532001},{136,0},{60,0x1001},{128,0},{132,0},{152,0}})do test(image(true,change),nil)end
+test(image(true,{136,0}),'bg2ee-steam-2.7.3.0',nil,nil,'header-layout')
+test(image(true,{216,0}),'bg2ee-steam-2.7.3.0',nil,nil,'header-layout')
+local variant=image(true,{208,0x3532001})
+for _,candidate in ipairs({'bg2ee-2.6.6.0','bg2ee-steam-2.7.3.0','bgee-steam-2.6.6.0','bgee-steam-2.7.3.0'}) do
+    test(variant,candidate,nil,{profile=candidate},'installer-game-version')
+end
+for _,hint in ipairs({'bad-result','throw','load-throw',{}, {profile='unknown-profile'}}) do test(variant,nil,nil,hint)end
+test(variant,'bg2ee-steam-2.7.3.0','guard',{profile='bg2ee-steam-2.7.3.0'})
+for _,change in ipairs({{208,0x3532001},{60,0x1001},{128,0},{132,0},{152,0}})do test(image(true,change),nil)end
 test(new,nil,'missing-api');test(new,nil,'bad-base')
 for _,mode in ipairs({'missing','load-throw','throw','guard','missing-loader'})do test(new,'bg2ee-steam-2.7.3.0',mode)end
 io,loadfile,print=original_io,original_loadfile,original_print
 EEex_GetImageBase,EEex_Read32=original_base,original_read
 MRIP_BaselineRevision=nil;MRIP_DispatchLoaded=nil;MRIP_TraceEnabled=nil
-print('Profile selection: '..checks..' assertions; io=nil, loaded PE identity, safe refusal, missing APIs/loader and duplicate guard')
+print('Profile selection: '..checks..' assertions; io=nil, known and unfamiliar headers, installer hints, native refusal and duplicate guard')

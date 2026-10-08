@@ -4,7 +4,7 @@ local source=file(MRIP_TEST_RUNTIME_PATH)
 local body=assert(source:match('local settle_native_factory=%(function%(%)\n(.-)\nend%)%(%)'),'embedded settle factory missing')
 local factory=assert(loadstring(body))()
 local constructor=assert(tonumber(body:match('local address=base%+(0x%x+)')))
-local image=file(MRIP_TEST_GAME_PATH..'/Baldur.exe')
+local image=file(MRIP_TEST_EXECUTABLE_PATH or MRIP_TEST_GAME_PATH..'/Baldur.exe')
 local function u32(p)local a,b,c,d=image:byte(p+1,p+4);return a+b*256+c*65536+d*16777216 end
 local pe=u32(60);local count=image:byte(pe+7)+image:byte(pe+8)*256
 local table_start=pe+24+image:byte(pe+21)+image:byte(pe+22)*256

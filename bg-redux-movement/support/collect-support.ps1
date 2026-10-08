@@ -60,10 +60,11 @@ function Get-FileIdentity([string]$Relative) {
 [void]$taskReport.AppendLine('Review before sharing. May contain character and installed mod names.')
 [void]$taskReport.AppendLine('No saves, crash dumps, credentials, environment dump, or uploads included.')
 Add-Section 'File versions and actual hashes' ((@(
-    'Baldur.exe', 'EEex.dll', 'LuaBindings.dll', 'InfinityLoader.exe',
+    'Baldur.exe', 'BaldurII.exe', 'SiegeOfDragonspear.exe', 'EEex.dll', 'LuaBindings.dll', 'InfinityLoader.exe', 'EEex.exe', 'InfinityLoaderDLL.dll',
     'override/M_BGREDX.lua'
 ) | ForEach-Object { Get-FileIdentity $_ }) -join "`r`n")
 Add-Section 'Package metadata' (Read-Limited (Join-Path $taskGameRoot 'bg-redux-movement/release.json') 131072)
+Add-Section 'Installer game/version hint' (Read-Limited (Join-Path $taskGameRoot 'bg-redux-movement/installed-profile.lua') 65536)
 Add-Section 'Saved feature settings' (Read-Limited (Join-Path $taskGameRoot 'bg-redux-movement.ini') 65536)
 Add-Section 'Installed mods (WeiDU.log)' (Read-Limited (Join-Path $taskGameRoot 'WeiDU.log') 524288)
 Add-Section 'EEex package version' ((Read-Limited (Join-Path $taskGameRoot 'EEex/EEex.tp2') 262144) -split '\r?\n' |

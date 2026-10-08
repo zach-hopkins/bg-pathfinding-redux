@@ -1,8 +1,7 @@
--- BG Pathfinding Redux 0.1.4-preview: select a verified native runtime.
--- Unknown executable builds never reach either payload or install mod hooks.
+-- BG Pathfinding Redux 0.1.5-preview: prefer known builds, try variants with native checks.
 if MRIP_BaselineRevision or MRIP_DispatchLoaded then return end
 MRIP_DispatchLoaded=true
-MRIP_PackageVersion='0.1.4-preview'
+MRIP_PackageVersion='0.1.5-preview'
 local profiles={
     ['6A18D6DC:004F84B0:03524000:006DDF33']={id='bgee-steam-2.7.3.0',revision=56,path='bg-redux-movement/runtime/profiles/bgee-steam-2.7.3.0.lua'},
     ['609432DE:004F74D0:03522000:00000000']={id='bgee-steam-2.6.6.0',revision=55,path='bg-redux-movement/runtime/profiles/bgee-steam-2.6.6.0.lua'},
@@ -45,13 +44,35 @@ end
 local id,err=fingerprint()
 if not id then disabled(err);return end
 local profile=profiles[id]
-if not profile then disabled('unrecognized executable build '..id);return end
+local selection='exact-header'
+if not profile then
+    -- Timestamps/checksums can change without moving engine code.
+    local layout=id:match('^%x+:(%x+:%x+):')
+    for known,candidate in pairs(profiles) do
+        if known:match('^%x+:(%x+:%x+):')==layout then
+            profile=candidate;selection='header-layout';break
+        end
+    end
+    if not profile and type(loadfile)=='function' then
+        local ok,chunk=pcall(loadfile,'bg-redux-movement/installed-profile.lua')
+        if ok and type(chunk)=='function' then
+            local read_ok,hint=pcall(chunk)
+            if read_ok and type(hint)=='table' and type(hint.profile)=='string' then
+                for _,candidate in pairs(profiles) do
+                    if candidate.id==hint.profile then profile=candidate;selection='installer-game-version';break end
+                end
+            end
+        end
+    end
+    if not profile then disabled('no candidate profile for executable '..id..'; reinstall the mod to generate its game/version hint');return end
+    print('[BG Pathfinding Redux] COMPATIBILITY_WARNING unfamiliar header='..id..' candidate='..profile.id..' selection='..selection..'; attempting activation with native signature/layout checks')
+end
 if type(loadfile)~='function' then disabled('Lua chunk loader unavailable');return end
 local load_ok,payload,load_error=pcall(loadfile,profile.path)
 if not load_ok then disabled('profile loading failed: '..tostring(payload));return end
 if not payload then disabled('missing or invalid profile '..profile.id..': '..tostring(load_error));return end
-print('[BG Pathfinding Redux] PROFILE_SELECTED package='..MRIP_PackageVersion..' profile='..profile.id..' revision='..profile.revision)
+print('[BG Pathfinding Redux] PROFILE_SELECTED package='..MRIP_PackageVersion..' profile='..profile.id..' revision='..profile.revision..' selection='..selection..' header='..id)
 local ok,runtime_error=pcall(payload)
 if not ok then disabled('profile initialization failed: '..tostring(runtime_error));return end
 if not MRIP_TraceEnabled then disabled('native signature or layout validation failed for '..profile.id);return end
-MRIP_CompatibilityStatus={supported=true,profile=profile.id,revision=profile.revision,package=MRIP_PackageVersion}
+MRIP_CompatibilityStatus={supported=true,profile=profile.id,revision=profile.revision,package=MRIP_PackageVersion,selection=selection,unfamiliar=selection~='exact-header',fingerprint=id}

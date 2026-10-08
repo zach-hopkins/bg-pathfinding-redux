@@ -63,16 +63,17 @@ The accepted tuning uses a 50-pixel route band and bounds added travel to both
 
 `bg-redux-movement/runtime/M_BGREDX.lua` is now a small startup selector. It reads
 the loaded executable header through `EEex_GetImageBase` and `EEex_Read32` and
-selects a known PE identity without Lua file I/O. Unknown
-identities return before loading a native runtime; a diagnostic and an in-game
-message explain the refusal. Settings are not rewritten. Loaded header identity is a
-selector, not a cryptographic integrity check: the installer warns on unrecognized MD5
-hashes, release tooling checks SHA256 hashes, and each runtime checks native
-signatures and field layouts.
+prefers a known PE identity without Lua `io`. Unknown identities warn and try a
+candidate using entrypoint/image size or `bg-redux-movement/installed-profile.lua`.
+WeiDU generates this hint from game family and the PATCH27.BIF marker, following
+EEex. Only a shipped profile can be selected; the selector does not retry another
+payload after native initialization. Native signatures and field layouts decide
+whether hooks can be installed. Settings are not rewritten. Hash/header identity
+is advisory; release-tool hashes verify the package itself, not user eligibility.
 
 `bg-redux-movement/runtime/profiles` contains the self-contained revision 53
 (BG2EE 2.6), revision 54 (BG2EE Steam 2.7), and revision 55
-(BGEE/SoD Steam 2.6) implementations with public naming and logging
+(BGEE/SoD Steam 2.6), and revision 56 (BGEE/SoD Steam 2.7) implementations with public naming and logging
 cleanup. `profiles.json` records both their shipped hashes and the earlier
 accepted runtime hashes. The 0.1.2 presentation changes rename the settings path,
 clean feedback, suppress routine telemetry outside explicit captures, and silence
@@ -88,7 +89,7 @@ folder and settings use the full `bg-redux-movement` name.
 `MRIP_*` native bridge symbols remain internal implementation names so native
 bindings and assembler labels stay unchanged; they are not public package names.
 
-New engine versions require a reviewed profile. Scanning for a short instruction
+Engine changes that fail native checks require a revised profile. Scanning for a short instruction
 sequence and guessing the surrounding ABI is not a supported update strategy.
 The selector cannot repair an incompatible EEex installation or undo Steam
 replacing other installed mod files.

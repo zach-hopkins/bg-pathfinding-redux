@@ -43,6 +43,7 @@ def main():
     files['bg-redux-movement/support/Collect BG Redux Support.cmd']=(ROOT/'bg-redux-movement/support/Collect BG Redux Support.cmd').read_bytes()
     files['Collect BG Redux Support.cmd']=(ROOT/'bg-redux-movement/support/Collect BG Redux Support.cmd').read_bytes()
     files['bg-redux-movement/support/collect-support.ps1']=(ROOT/'bg-redux-movement/support/collect-support.ps1').read_bytes()
+    files['bg-redux-movement/runtime/profile-hint.lua.in']=(ROOT/'bg-redux-movement/runtime/profile-hint.lua.in').read_bytes()
     files['bg-redux-movement/profiles.json']=(ROOT/'profiles.json').read_bytes()
     for profile in meta['profiles']:
         files[profile['runtime_path']]=(ROOT/profile['runtime_path']).read_bytes()

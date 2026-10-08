@@ -1,4 +1,4 @@
-# BG Pathfinding Redux — 0.1.4 preview
+# BG Pathfinding Redux — 0.1.5 preview
 
 Allied creatures pass through one another while walls, closed doors, neutral
 NPCs and enemies retain their native blocking behavior. Party melee approach
@@ -7,7 +7,7 @@ members after a short 150 ms grace period. Allies can still compress when needed
 
 ## Tested setups and updates
 
-This 0.1.4-preview package automatically selects the supported native profile for:
+This 0.1.5-preview package automatically selects the supported native profile for:
 
 - Windows BG2EE 2.6.6.0 / EEex 1.2.0 (revision 53).
 - Windows Steam BG2EE 2.7.3.0 / EEex 1.3.0 (revision 54), confirmed working
@@ -18,16 +18,16 @@ This 0.1.4-preview package automatically selects the supported native profile fo
 - Windows Steam BGEE and Siege of Dragonspear 2.7.3.0 / EEex 1.3.0
   (revision 56), confirmed working October 7, 2026 after the settle correction.
 
-Executable hashes are listed in the bundled `profiles.json`. Hash mismatches warn
-and installation continues. Recognized startup headers and native signature/layout
-checks are still required. Changes outside the checked regions are not certified
-compatible by a successful startup. For archived Steam/GOG SoD DLC, install DLC Merger before EEex. Install EEex
-and launch through `InfinityLoader.exe`. Keep the `bg-redux-movement` folder after
-installation; it contains all four profiles. Native signature/layout checks remain.
-Unknown executable identities disable this mod with an update-needed message
-instead of installing hooks. Settings are preserved and native movement remains
-active when EEex initializes. This cannot guarantee future patch support or
-prevent EEex itself from needing an update.
+Executable hashes are listed in `profiles.json` and are advisory. Unfamiliar
+headers warn and try a likely profile: first a matching entrypoint/image size,
+then the installer game/version hint. Native instruction and field-layout checks
+remain active. GOG `BaldurII.exe`, `SiegeOfDragonspear.exe`, and custom filenames
+no longer prevent installation. A renamed EEex launcher warns rather than blocks.
+The installer hint follows EEex: game type plus `data/PATCH27.BIF` for 2.7,
+otherwise the 2.6 candidate. Passing checks does not certify every executable edit.
+For archived SoD DLC, install DLC Merger before EEex. Launch through your EEex
+loader and retain `bg-redux-movement`, which holds all four profiles. Reinstall
+after a game update to refresh the hint. Existing settings are preserved.
 
 EET installation is verified, but EET gameplay remains pending. GOG 2.7, other
 executables, IWDEE and multiplayer are unvalidated. These accepted setups do not
@@ -40,7 +40,7 @@ For upgrades from 0.1.0/0.1.1, uninstall using `setup-mrdx-movement.exe` first.
 Keep `mrdx-movement.ini`: it is copied when the new settings file is absent.
 The installer refuses an installed old component or a lingering old prototype.
 
-Close the game. Extract beside `Baldur.exe`, retaining the `bg-redux-movement` folder,
+Close the game. Extract beside your game executable, retaining the `bg-redux-movement` folder,
 then run `setup-bg-redux-movement.exe` and choose component 0. Installation backs up
 any existing `override/M_BGREDX.lua`. Do not keep a separate renamed copy of that
 prototype active. No campaign resources or save files are patched.

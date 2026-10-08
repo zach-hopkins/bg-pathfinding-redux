@@ -1,3 +1,18 @@
+# Permissive compatibility selection — 0.1.5-preview
+
+442 selector assertions cover known builds, altered timestamps/checksums, all
+four installer hints, invalid/missing hints, missing APIs, actual native refusal,
+and duplicate initialization. Native fixtures for all four profiles additionally
+alter the loaded header timestamp while retaining the real instruction bytes:
+activation succeeds with warning; corrupted native sites still fail.
+
+Real WeiDU BG2EE, BGEE/SoD and EET-marker labs verify BaldurII.exe/custom filenames,
+renamed launcher installation, generated 2.6/2.7 hints, hint rollback, settings and
+loader-log preservation. Collector fixtures verify alternate executable hashing.
+GOG executable/gameplay has not been tested locally. No game was launched.
+
+The historical entries below describe stricter policies in earlier releases.
+
 # Community support checks — 2026-10-07
 
 Disposable Windows PowerShell fixtures verify hashes, quoted/custom/absolute log

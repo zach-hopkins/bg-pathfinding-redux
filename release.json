@@ -1,10 +1,10 @@
 {
   "name": "bg-redux-movement",
-  "version": "0.1.4-preview",
+  "version": "0.1.5-preview",
   "revision": 56,
   "policy_revision": 52,
-  "status": "community-support-and-four-profile-release",
-  "runtime_sha256": "68E166897F3B0377FDDA95912B84A2118118B88AC04B3EC9DE025ABA47EABD37",
+  "status": "permissive-variant-selection",
+  "runtime_sha256": "5A1A5B3D5E79BFFA07CD60CABCBB8405C180707E4BE1730606D67D4A6907F4E8",
   "tested_game": "Windows BG2EE 2.6.6.0; Steam BG2EE 2.7.3.0; Steam BGEE/SoD 2.6.6.0 and 2.7.3.0",
   "tested_eeex": "1.2.0 on BG2EE 2.6; 1.3.0 on BG2EE 2.7 and BGEE/SoD 2.6/2.7",
   "solo_only": true,
@@ -124,5 +124,7 @@
   "bg1_sod_27_gameplay_acceptance": "user-confirmed",
   "bg1_sod_27_acceptance_date": "2026-10-07",
   "support_report": "bg-redux-support.log",
-  "support_collector": "Collect BG Redux Support.cmd"
+  "support_collector": "Collect BG Redux Support.cmd",
+  "compatibility_policy": "Unknown hash/header warns; try header layout or installer game/version hint; native mismatch checks remain required",
+  "gog_gameplay_acceptance": "pending"
 }

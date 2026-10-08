@@ -5,7 +5,7 @@
 1. For a movement problem, hold **Left Ctrl + Left Shift**, press **F7**, and
    reproduce the problem within 20 seconds. F9 ends recording early; F8 takes an
    extra snapshot. Recording does not change your enabled features.
-2. Double-click **`Collect BG Redux Support.cmd`** beside `Baldur.exe`.
+2. Double-click **`Collect BG Redux Support.cmd`** in the game folder.
 3. Send the resulting **`bg-redux-support.log`**. The collector prints its location:
    normally the game folder, or your Desktop if that folder cannot be written.
 
@@ -16,7 +16,7 @@ skip step 1 and collect directly. Missing captures are clearly identified in the
 ## What is included
 
 - Game, EEex, loader, and runtime file versions/hashes; package/profile metadata.
-- Saved feature settings and the installed mod list from `WeiDU.log`.
+- Installer game/version hint, saved feature settings and the installed mod list from `WeiDU.log`.
 - The newest 4 MiB of loader output, including startup failures and recorded runs.
 - During requested snapshots: area/creature identifiers, party actor state,
   positions, actions, destinations and paths, plus pause and package/profile context.

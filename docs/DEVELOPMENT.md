@@ -28,8 +28,9 @@ package-configured ON route preference are checked. No game process is started.
 You may supply `--lua-dll` explicitly if the installed LuaJIT DLL is elsewhere.
 The fixture recognizes the four tested executable hashes and selects the corresponding
 binding-registration metadata and native fixture addresses for EEex 1.2.0 or
-1.3.0. It exercises the actual package selector before each payload. Do not commit
-game files. Profile-selection refusal cases also run in portable CI.
+1.3.0. It exercises the actual package selector before each payload. For an unfamiliar executable, supply `--profile bg2ee-steam-2.7.3.0` (or another
+shipped reference). Actual byte/layout checks still run. BaldurII.exe is recognized.
+Do not commit game files. Profile-selection refusal cases also run in portable CI.
 
 ## Installer check
 
@@ -86,7 +87,7 @@ must produce the same SHA256.
 
 - Retain the MIT license and keep third-party terms separate.
 - Keep the accepted payload hashes until a new gameplay revision is intentionally
-  validated; preserve runtime header, signature and layout guards; installer hash differences warn.
+  validated; retain native signature/layout checks; hashes and unfamiliar headers warn.
 - Run portable checks and applicable native/installer checks.
 - Build the ZIP and check its install layout and hashes.
 - Attach the ZIP and checksum file to a draft **prerelease** named for the version in `release.json`.

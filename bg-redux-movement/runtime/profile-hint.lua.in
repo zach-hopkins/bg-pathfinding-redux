@@ -1,0 +1,3 @@
+-- Installer hint used only when the loaded header does not select a known layout.
+-- Follows EEex's GAME_IS / PATCH27.BIF version selection; native guards still decide.
+return {profile='%bg_redux_profile%',game='%bg_redux_family%',version='%bg_redux_version%'}

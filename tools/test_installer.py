@@ -6,7 +6,7 @@ from pathlib import Path
 import shutil
 import subprocess
 import uuid
-from checks import ROOT, WORK, check_integrity
+from checks import ROOT, WORK, check_integrity, executable_path
 
 def sha(path):
     return hashlib.sha256(path.read_bytes()).hexdigest()
@@ -15,8 +15,12 @@ def exercise(weidu, game, eet):
     lab=WORK/('installer-'+('eet-' if eet else 'bg2ee-')+uuid.uuid4().hex[:8])
     (lab/'override').mkdir(parents=True)
     (lab/'lang/en_US').mkdir(parents=True)
-    for name in ('Baldur.exe','chitin.key','lang/en_US/dialog.tlk'):
+    shutil.copyfile(executable_path(game),lab/'Baldur.exe')
+    for name in ('chitin.key','lang/en_US/dialog.tlk'):
         shutil.copyfile(game/name,lab/name)
+    newer=(game/'data/PATCH27.BIF').exists()
+    if newer:
+        (lab/'data').mkdir();(lab/'data/PATCH27.BIF').write_bytes(b'')
     shutil.copytree(ROOT/'bg-redux-movement',lab/'bg-redux-movement')
     (lab/'weidu.conf').write_text('lang_dir = en_US\n',encoding='utf-8')
     (lab/'WeiDU.log').write_text('',encoding='utf-8')
@@ -48,6 +52,8 @@ def exercise(weidu, game, eet):
             assert 'SKIPPING:' in result.stdout and reason in result.stdout and 'SUCCESSFULLY INSTALLED' not in result.stdout,result.stdout+result.stderr
     command('--force-install-list')
     assert overlay.read_bytes()==runtime
+    hint=lab/'bg-redux-movement/installed-profile.lua'
+    assert ('2.7.3.0' if newer else '2.6.6.0') in hint.read_text(encoding='utf-8')
     assert 'LogFile=bg-redux-runtime.log' in loader_ini.read_text()
     assert (lab/'Collect BG Redux Support.cmd').is_file()
     assert config.read_bytes()==(ROOT/'bg-redux-movement/defaults.ini').read_bytes()
@@ -56,6 +62,7 @@ def exercise(weidu, game, eet):
     command('--force-uninstall-list')
     assert overlay.read_bytes()==original and config.read_bytes()==custom
     assert loader_ini.read_bytes()==original_ini
+    assert not hint.exists()
     assert not (lab/'Collect BG Redux Support.cmd').exists()
     custom_ini=b'[General]\r\nLogFile=existing custom.log\r\nDebug=0\r\n'
     loader_ini.write_bytes(custom_ini)
@@ -65,6 +72,19 @@ def exercise(weidu, game, eet):
     assert loader_ini.read_bytes()==custom_ini
     command('--force-uninstall-list')
     assert not overlay.exists() and config.read_bytes()==custom
+    # A storefront filename, and then a custom name, are not installation gates.
+    (lab/'Baldur.exe').rename(lab/'BaldurII.exe')
+    command('--force-install-list')
+    assert overlay.read_bytes()==runtime and config.read_bytes()==custom and hint.exists()
+    command('--force-uninstall-list')
+    assert not hint.exists()
+    (lab/'BaldurII.exe').rename(lab/'CustomGame.exe')
+    (lab/'InfinityLoader.exe').rename(lab/'CustomLoader.exe')
+    command('--force-install-list')
+    assert overlay.read_bytes()==runtime and config.read_bytes()==custom
+    command('--force-uninstall-list')
+    (lab/'CustomGame.exe').rename(lab/'Baldur.exe')
+    (lab/'CustomLoader.exe').rename(lab/'InfinityLoader.exe')
     assert sha(lab/'lang/en_US/dialog.tlk')==tlk and sha(lab/'chitin.key')==key
     assert other.read_bytes()==b'-- unrelated fixture\r\n'
     # A lingering manual prototype is refused before touching either overlay.
@@ -102,11 +122,11 @@ def exercise(weidu, game, eet):
     assert not overlay.exists() and config.read_bytes()==custom
     installed_lines=[line for line in (lab/'WeiDU.log').read_text().upper().splitlines() if not line.lstrip().startswith('//')]
     assert not any('BG-REDUX-MOVEMENT' in line for line in installed_lines)
-    return dict(game='EET-marker lab' if eet else 'BGEE/SoD' if hashlib.sha256((game/'Baldur.exe').read_bytes()).hexdigest().upper()in ('9634C3E685A9D2F467D663B2E211065F9D4D84FD3115B89AC24DCA2071D618B1','187F89E1033999B2C8EAE6591641325BA012071030364767F42221ECAE92372A') else 'BG2EE',passed=True,overlay_restored=True,
+    return dict(game='EET-marker lab' if eet else 'BGEE/SoD' if hashlib.sha256(executable_path(game).read_bytes()).hexdigest().upper()in ('9634C3E685A9D2F467D663B2E211065F9D4D84FD3115B89AC24DCA2071D618B1','187F89E1033999B2C8EAE6591641325BA012071030364767F42221ECAE92372A') else 'BG2EE',passed=True,overlay_restored=True,
                 new_overlay_removed=True,defaults_created=True,settings_preserved=True,
                 dialogue_and_key_unchanged=True,unrelated_overlay_unchanged=True,
                 modified_executable_warned=True,modified_executable_installed=True,blank_logging_enabled=True,custom_log_preserved=True,loader_ini_restored=True,collector_installed=True,legacy_component_refused=True,
-                manual_legacy_overlay_refused=True,legacy_settings_migrated=True)
+                manual_legacy_overlay_refused=True,legacy_settings_migrated=True,storefront_and_custom_names_allowed=True,profile_hint_installed_and_rolled_back=True)
 
 def main():
     parser=argparse.ArgumentParser(description=__doc__)

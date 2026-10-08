@@ -1,5 +1,14 @@
 # Changelog
 
+## 0.1.5-preview — 2026-10-07
+
+- Accept BaldurII.exe and SiegeOfDragonspear.exe; custom game/launcher filenames warn instead of blocking installation.
+- Treat unfamiliar PE identities as advisory: try a matching layout or installer game/version hint.
+- Generate the hint using the same GAME_IS/PATCH27.BIF selection as EEex.
+- Retain actual native signature/layout checks and duplicate-install safeguards.
+- Include alternate executable/launcher hashes and the hint in support reports.
+- Movement profiles and tuning are unchanged; GOG gameplay confirmation remains pending.
+
 ## 0.1.4-preview â€” 2026-10-07
 
 - Add user-confirmed Windows Steam BGEE and SoD 2.6.6.0 / EEex 1.3.0 compatibility.

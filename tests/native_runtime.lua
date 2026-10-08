@@ -3,7 +3,7 @@ local original_print=print
 local source_path=MRIP_TEST_RUNTIME_PATH or "bg-redux-movement/runtime/profiles/bg2ee-2.6.6.0.lua"
 local expected_revision=MRIP_TEST_REVISION or (MRIP_TEST_PROTOTYPE and (MRIP_TEST_PREFERENCE and 47 or 38) or 3)
 local expected_hooks=MRIP_TEST_PROTOTYPE and (MRIP_TEST_PREFERENCE and 35 or 24) or 6
-local image=assert(io.open(MRIP_TEST_GAME_PATH.."/Baldur.exe","rb")):read("*a")
+local image=assert(io.open(MRIP_TEST_EXECUTABLE_PATH or MRIP_TEST_GAME_PATH.."/Baldur.exe","rb")):read("*a")
 local function image_u32(offset)
     local a,b,c,d=image:byte(offset+1,offset+4)
     return a+b*256+c*65536+d*16777216
@@ -123,6 +123,7 @@ EEex_ReadU8=function(address)
     return executable_byte(address)
 end
 EEex_Read32=function(address)
+    if MRIP_TEST_VARIANT_HEADER and address==exe_base+pe+8 then return 0 end
     local value=memory[address]
     if value==nil then
         value=executable_byte(address)+executable_byte(address+1)*256+executable_byte(address+2)*65536+executable_byte(address+3)*16777216

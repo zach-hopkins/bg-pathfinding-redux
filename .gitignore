@@ -7,5 +7,6 @@ __pycache__/
 *.dmp
 /bg-redux-movement/backup/
 /bg-redux-movement.ini
+/bg-redux-movement/installed-profile.lua
 /setup-bg-redux-movement.exe
 /.vendor/

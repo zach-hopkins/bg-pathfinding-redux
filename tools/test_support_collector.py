@@ -49,6 +49,11 @@ def main():
     assert str(lab.resolve()) not in text and '[GAME]' in text
     assert hashlib.sha256((lab/'Baldur.exe').read_bytes()).hexdigest().upper() in text
     assert 'EEex.dll : [MISSING]' in text
+    (lab/'Baldur.exe').rename(lab/'BaldurII.exe')
+    text=collect()
+    assert 'BaldurII.exe : bytes=' in text and 'Baldur.exe : [MISSING]' in text
+    assert hashlib.sha256((lab/'BaldurII.exe').read_bytes()).hexdigest().upper() in text
+    (lab/'BaldurII.exe').rename(lab/'Baldur.exe')
     log.unlink()  # Only the named log created in this disposable fixture.
     text = collect()
     assert '[MISSING]' in text and 'NO MOVEMENT CAPTURE RECORDED' in text

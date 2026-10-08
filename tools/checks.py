@@ -13,7 +13,7 @@ import sys
 ROOT = Path(__file__).resolve().parent.parent
 WORK = ROOT / 'tests/.work'
 RUNTIME = ROOT / 'bg-redux-movement/runtime/M_BGREDX.lua'
-PIN = '68E166897F3B0377FDDA95912B84A2118118B88AC04B3EC9DE025ABA47EABD37'
+PIN = '5A1A5B3D5E79BFFA07CD60CABCBB8405C180707E4BE1730606D67D4A6907F4E8'
 PROFILE_PINS = {
     'bgee-steam-2.7.3.0': 'BB41BEFFAF8B71B3D86BF04BCBEFD904640059888E8AC626BAC145759BB2A98E',
     'bgee-steam-2.6.6.0': 'D609FC9F165DDC338079A3A20D2337D870E3229CCF2C728E451F777B093EF356',
@@ -23,6 +23,12 @@ PROFILE_PINS = {
 
 def sha(path):
     return hashlib.sha256(path.read_bytes()).hexdigest().upper()
+
+def executable_path(game):
+    for name in ('Baldur.exe', 'BaldurII.exe', 'SiegeOfDragonspear.exe'):
+        path=game/name
+        if path.is_file(): return path
+    raise FileNotFoundError('No recognized game executable in '+str(game))
 
 def check_integrity():
     meta = json.loads((ROOT/'release.json').read_text(encoding='utf-8'))
@@ -59,9 +65,11 @@ def check_integrity():
         assert text in tp2, text
     assert 'REQUIRE_PREDICATE (FILE_MD5' not in tp2
     assert 'ACTION_IF NOT (FILE_MD5' in tp2 and 'WARNING: Executable hash differs' in tp2
-    assert 'REQUIRE_PREDICATE (FILE_EXISTS ~Baldur.exe~)' in tp2
+    assert 'REQUIRE_PREDICATE (FILE_EXISTS ~Baldur.exe~)' not in tp2
+    assert 'FILE_EXISTS ~BaldurII.exe~' in tp2 and 'FILE_EXISTS ~SiegeOfDragonspear.exe~' in tp2
+    assert 'data/PATCH27.BIF' in tp2 and 'profile-hint.lua.in' in tp2
     for profile in profiles:
-        assert 'FILE_MD5 ~Baldur.exe~ ~'+profile['exe_md5']+'~' in tp2
+        assert 'FILE_MD5 ~%bg_redux_exe%~ ~'+profile['exe_md5']+'~' in tp2
     print('Integrity: MIT license, dispatcher and all shipped profile hashes, metadata, four ON defaults, fixture linkage, executable hash warnings and native profile pins passed')
     return meta
 
@@ -100,6 +108,7 @@ def main():
     parser.add_argument('--lua', help='LuaJIT executable for portable fixtures')
     parser.add_argument('--lua-dll',type=Path,help='Installed 64-bit lua51.dll on Windows')
     parser.add_argument('--game',type=Path,help='Read-only pinned BG2EE/EEex installation for native checks')
+    parser.add_argument('--profile',choices=tuple(PROFILE_PINS),help='Reference profile for an unfamiliar executable; actual native bytes/bindings are still checked')
     args = parser.parse_args()
     meta=check_integrity()
     WORK.mkdir(parents=True,exist_ok=True)
@@ -118,13 +127,14 @@ def main():
         ran.append('profile selection and unsupported-build refusal')
         if args.game:
             game = args.game.resolve()
-            profile=next((p for p in meta['profiles'] if p['exe_sha256']==sha(game/'Baldur.exe')),None)
-            assert profile, 'Unsupported executable for native fixture'
+            executable=executable_path(game)
+            profile=next((p for p in meta['profiles'] if p['id']==args.profile),None) if args.profile else next((p for p in meta['profiles'] if p['exe_sha256']==sha(executable)),None)
+            assert profile, 'Unfamiliar executable: supply --profile to evaluate a reference layout'
             (WORK/'native').mkdir(exist_ok=True)
             subprocess.run([sys.executable,str(ROOT/'tools/inspect_bindings.py'),'--game',str(game),'--profile',profile['id']],
                            cwd=ROOT,check=True,timeout=30)
             settle_entry=WORK/'settle-signature-entry.lua'
-            settle_entry.write_text('MRIP_TEST_GAME_PATH='+json.dumps(game.as_posix())+'\nMRIP_TEST_RUNTIME_PATH='+json.dumps(profile['runtime_path'])+'\ndofile(\"tests/settle_native_signature.lua\")\n',encoding='utf-8')
+            settle_entry.write_text('MRIP_TEST_EXECUTABLE_PATH='+json.dumps(executable.as_posix())+'\nMRIP_TEST_GAME_PATH='+json.dumps(game.as_posix())+'\nMRIP_TEST_RUNTIME_PATH='+json.dumps(profile['runtime_path'])+'\ndofile(\"tests/settle_native_signature.lua\")\n',encoding='utf-8')
             lua_check(settle_entry,args.lua,dll)
             ran.append(profile['id']+': lazy settle guard and registration against actual bytes')
             fixture=(ROOT/'tests/native_runtime.lua').read_text(encoding='utf-8')
@@ -139,18 +149,21 @@ def main():
                 fixture=re.sub(r'0x[\dA-Fa-f]+',rva,fixture)
             fixture_path=WORK/'native_runtime.lua'
             fixture_path.write_text(fixture,encoding='utf-8')
-            for enabled in (False,True):
+            for enabled,variant in ((False,False),(True,False),(True,True)):
                 entry = WORK/('native-on.lua' if enabled else 'native-off.lua')
                 entry.write_text('MRIP_TEST_REVISION='+str(profile['revision'])+'\nMRIP_TEST_PROTOTYPE=true\n'
                                  'MRIP_TEST_PREFERENCE=true\nMRIP_TEST_RELEASE=true\n'
                                  'MRIP_TEST_GAME_PATH='+json.dumps(game.as_posix())+'\n'
+                                 'MRIP_TEST_EXECUTABLE_PATH='+json.dumps(executable.as_posix())+'\n'
+                                 'MRIP_TEST_VARIANT_HEADER='+('true' if variant else 'false')+'\n'
                                  'MRIP_TEST_RUNTIME_PATH='+json.dumps(profile['runtime_path'])+'\n'
                                  +("MRIP_TEST_RELEASE_INITIAL_VALUES={RoutePreference='1'}\n" if enabled else '')
+                                 +("local fixture_loadfile=loadfile\nloadfile=function(path) if path=='bg-redux-movement/installed-profile.lua' then return function()return {profile="+json.dumps(profile['id'])+"}end end;return fixture_loadfile(path)end\n" if args.profile else '')
                                  +"local original_dofile=dofile\n"
                                  +"dofile=function(path) if path==MRIP_TEST_RUNTIME_PATH then if not MRIP_BaselineRevision then MRIP_DispatchLoaded=nil end;local saved_io=io;io=nil;local ok,err=pcall(original_dofile,'bg-redux-movement/runtime/M_BGREDX.lua');io=saved_io;if not ok then error(err) end;return end;return original_dofile(path) end\n"
                                  +"dofile('tests/.work/native_runtime.lua')\n",encoding='utf-8')
                 lua_check(entry,args.lua,dll)
-            ran.append(profile['id']+': dispatcher + native runtime, preference OFF and ON')
+            ran.append(profile['id']+': dispatcher + native runtime, preference OFF/ON and unfamiliar-header activation')
     result=dict(passed=True,checks=ran,game_launched=False,
                 limits='Simulated Lua/EEex state plus actual bytes/layout when --game is supplied. No gameplay emulation.')
     (WORK/'checks.json').write_text(json.dumps(result,indent=2)+'\n',encoding='utf-8')

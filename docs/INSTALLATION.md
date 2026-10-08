@@ -12,7 +12,7 @@ This preview does not support multiplayer.
 ## Install or upgrade
 
 Extract the release's Windows installer ZIP into the game directory, beside
-`Baldur.exe`. Keep `setup-bg-redux-movement.exe` and the `bg-redux-movement` folder together.
+your game executable (`Baldur.exe`, `BaldurII.exe`, or `SiegeOfDragonspear.exe`). Keep `setup-bg-redux-movement.exe` and the `bg-redux-movement` folder together.
 Run the installer and choose component 0. Launch using `InfinityLoader.exe`.
 
 For **0.1.2 and later**, use WeiDU's normal reinstall flow. Existing
@@ -70,7 +70,7 @@ an existing custom path is preserved. Uninstall restores the prior loader INI.
 
 | Symptom | First check |
 | --- | --- |
-| Installer says “SKIPPING” | Read the printed reason. Installation requires BGEE/SoD/BG2EE/EET and EEex. Unknown full-file hashes warn; unknown startup identities cannot activate the mod. |
+| Installer says “SKIPPING” | Read the printed reason. Installation requires BGEE/SoD/BG2EE/EET and EEex. Unknown hashes/headers and custom filenames warn; a likely profile is tried with native checks. |
 | Game starts but no allied passage | Launch through InfinityLoader; check F6 state and startup/refusal messages. |
 | An optional feature is unavailable | Inspect the log's signature/layout/backend refusal; do not remove the guard. |
 | Visual preference seems subtle | It is bounded and may retain the native route. It is not continuous steering or guaranteed lanes. |
@@ -87,13 +87,17 @@ One package contains four verified profiles, and the selector rechecks the
 executable each startup. Switching between the supported 2.6 and Steam 2.7 builds
 does not require manually swapping mod runtimes, provided EEex supports the build.
 
-For a new executable identity, the mod prints `COMPATIBILITY_DISABLED` and shows
-an update-needed message after loading. It does not install movement hooks or
-change saved preferences. Native movement remains available if EEex initializes.
-The installer warns on unknown executable hashes and continues installing its overlay.
-Startup still requires a recognized header identity and passing native checks.
+An unfamiliar header prints `COMPATIBILITY_WARNING` and tries a likely existing
+profile. Matching entrypoint/image size takes priority; otherwise the installer
+hint supplies the game family and a 2.6/2.7 candidate. It follows EEex's detection:
+`GAME_IS` plus `data/PATCH27.BIF`. Reinstall after updates to refresh this hint.
 
-This is safe refusal, not automatic support for arbitrary future engine changes.
+Executable hashes and standard game/launcher filenames are advisory. Native
+instruction/layout mismatches still disable the affected hooks/features. A missing
+EEex backend, invalid architecture/header, or absence of any candidate remains a
+real activation failure. Saved preferences are preserved. Native checks do not
+establish comprehensive compatibility with every executable edit.
+
 Keep EEex current; an incompatible loader can fail before this mod runs. Steam
 may also replace installed game/mod files during updates or verification. Reinstall
 EEex and this mod if their files are replaced. Report the new version and executable

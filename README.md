@@ -25,7 +25,7 @@ toggled independently. Existing saved settings survive reinstall.
 
 ## Compatibility
 
-**Version 0.1.4-preview** automatically selects one of four verified executable profiles.
+**Version 0.1.5-preview** automatically selects one of four verified executable profiles.
 
 | Setup | Status |
 | --- | --- |
@@ -41,10 +41,11 @@ toggled independently. Existing saved settings survive reinstall.
 
 The exact tested executable hashes and profile revisions are listed in
 [profiles.json](profiles.json). A different executable hash produces an installer warning and installation continues.
-At startup, a small loader selects a known loaded-image PE identity, then the selected
-runtime verifies native signatures and field layouts before installing hooks.
-Unknown build identities leave the mod disabled, preserve settings, and report
-that an update is needed. This preserves native movement when EEex initializes.
+At startup, the loader prefers known headers. An unfamiliar header produces a
+warning and tries a profile based on matching entrypoint/image size, or the
+installer's game/version hint. Native instruction and layout checks remain active.
+A different filename, timestamp, checksum or full-file hash is not a rejection by
+itself. GOG `BaldurII.exe` is accepted; GOG gameplay confirmation is still pending.
 
 This handles the four known executable profiles without manually replacing the runtime. It
 does not guarantee compatibility with future patches, or prevent EEex itself
@@ -55,7 +56,7 @@ from needing an update. See [game updates](docs/INSTALLATION.md#game-updates).
 1. Close the game. For archived Steam/GOG SoD DLC, install [DLC Merger](https://github.com/Argent77/A7-DlcMerger/releases) first, then [EEex](https://github.com/Bubb13/EEex/releases).
 2. Download the **Windows installer ZIP** from this repository's
    [Releases](https://github.com/zach-hopkins/bg-pathfinding-redux/releases).
-3. Extract beside `Baldur.exe`, preserving the `bg-redux-movement` folder.
+3. Extract beside your game executable (`Baldur.exe` or `BaldurII.exe`), preserving the `bg-redux-movement` folder.
 4. Run `setup-bg-redux-movement.exe` and install component **0**.
 5. Start the game through **`InfinityLoader.exe`**.
 
