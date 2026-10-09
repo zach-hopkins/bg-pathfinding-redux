@@ -1,20 +1,22 @@
 name: Publish checked preview
 
-# Publish a future explicitly authorized build manually.
+# Publish this explicitly authorized 0.1.6 build; restore manual dispatch afterward.
 # Existing release tags are never overwritten.
 on:
   workflow_dispatch:
+  push:
+    branches: [main]
 
 permissions:
   contents: read
 
 concurrency:
-  group: publish-v0.1.5-preview
+  group: publish-v0.1.6-preview
   cancel-in-progress: false
 
 jobs:
   publish:
-    if: github.repository == 'zach-hopkins/bg-pathfinding-redux'
+    if: github.repository == 'zach-hopkins/bg-pathfinding-redux' && (github.event_name == 'workflow_dispatch' || contains(github.event.head_commit.message, '[publish-0.1.6]'))
     runs-on: ubuntu-latest
     timeout-minutes: 10
     permissions:
@@ -39,10 +41,10 @@ jobs:
           python - <<'PY'
           import hashlib, zipfile
           from pathlib import Path
-          archive = Path('dist/bg-redux-movement-0.1.5-preview-windows.zip')
+          archive = Path('dist/bg-redux-movement-0.1.6-preview-windows.zip')
           with zipfile.ZipFile(archive) as z:
               actual = hashlib.sha256(z.read('manifest.json')).hexdigest()
-              expected = 'e6e1e657addb6a20c1d3e4cdd3bfb1ae4c7b510b99772cac11a6d100de822656'
+              expected = 'be24ab1d41c47107f7af4397f55f22aca24664acf2d3a1ca6ed7cde5823bcbaf'
               assert actual == expected, 'Package payload differs from the reviewed release'
           PY
       - name: Create a draft with both assets, then publish the prerelease
@@ -50,11 +52,11 @@ jobs:
           GH_TOKEN: ${{ github.token }}
           GH_REPO: ${{ github.repository }}
         run: |
-          gh release create v0.1.5-preview \
-            dist/bg-redux-movement-0.1.5-preview-windows.zip \
+          gh release create v0.1.6-preview \
+            dist/bg-redux-movement-0.1.6-preview-windows.zip \
             dist/SHA256SUMS.txt \
             --target "$GITHUB_SHA" \
-            --title "BG Pathfinding Redux 0.1.5-preview" \
+            --title "BG Pathfinding Redux 0.1.6-preview" \
             --notes-file docs/RELEASE_NOTES.md \
             --prerelease --draft
-          gh release edit v0.1.5-preview --draft=false
+          gh release edit v0.1.6-preview --draft=false

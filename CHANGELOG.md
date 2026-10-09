@@ -1,5 +1,13 @@
 # Changelog
 
+## 0.1.6-preview — 2026-10-09
+
+- Allow allied movers already inside a neutral or enemy's occupied search cells to escape outward.
+- Re-evaluate from current positions on each collision check; permission ends on separation and does not allow entering a blocker from outside.
+- Apply the same origin-aware rule to the owned private search bitmap. Live occupancy, allegiances, native hooks, doors and terrain remain unchanged.
+- Preserve occupancy-counter validation, unknown paint refusal and multiple-blocker checks.
+- Covers recruitment/dismissal and charm while stacked. Offline checks pass; neutral and enemy overlap escape confirmed by the user in personal EET on October 9, 2026.
+
 ## 0.1.5-preview — 2026-10-07
 
 - Accept BaldurII.exe and SiegeOfDragonspear.exe; custom game/launcher filenames warn instead of blocking installation.

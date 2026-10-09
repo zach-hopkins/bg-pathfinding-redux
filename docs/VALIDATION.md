@@ -1,3 +1,20 @@
+# Overlap escape — 0.1.6-preview, 2026-10-09
+
+The user confirmed separation from both neutral and enemy party members after
+existing overlaps in personal Windows EET (BG2EE 2.6 profile):
+"Yup its working. neutral and enemy party members inside can be separated."
+This confirms those escape cases, not a complete campaign or an additional live
+retest of BGEE/SoD/2.7 for this change.
+
+652 assertions exercise the actual policies in all four shipped profiles.
+1,555 assertions exercise occupancy and the actual private-bitmap adapter:
+outward escape, inward entry/re-entry refusal, unrelated blockers, doors,
+terrain, mixed/wrapped counters, ownership and changed-context refusal, and
+writes confined to the private bitmap. Existing actual-byte/native layout and
+startup fixtures pass for all four profiles. No new native hook sites or live
+occupancy writes were added. Offline fixtures do not emulate gameplay; no game
+was launched by the agent.
+
 # Permissive compatibility selection — 0.1.5-preview
 
 442 selector assertions cover known builds, altered timestamps/checksums, all

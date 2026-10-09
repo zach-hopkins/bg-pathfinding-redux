@@ -1,13 +1,21 @@
-# BG Pathfinding Redux — 0.1.5 preview
+# BG Pathfinding Redux — 0.1.6 preview
 
 Allied creatures pass through one another while walls, closed doors, neutral
 NPCs and enemies retain their native blocking behavior. Party melee approach
 positions prefer usable separate spots; gentle settle separates stopped party
 members after a short 150 ms grace period. Allies can still compress when needed.
 
+Allied movers already overlapping a neutral or enemy can walk outward to escape.
+Normal blocking resumes on separation. Escape follows the Movement setting; it
+does not allow entering blockers from outside or crossing walls/closed doors.
+
+Allied movers already overlapping a neutral or enemy can walk outward to escape.
+Normal blocking resumes on separation. This is part of the Movement setting; it
+does not allow entering blockers from outside or crossing walls/closed doors.
+
 ## Tested setups and updates
 
-This 0.1.5-preview package automatically selects the supported native profile for:
+This 0.1.6-preview package automatically selects the supported native profile for:
 
 - Windows BG2EE 2.6.6.0 / EEex 1.2.0 (revision 53).
 - Windows Steam BG2EE 2.7.3.0 / EEex 1.3.0 (revision 54), confirmed working
@@ -29,7 +37,8 @@ For archived SoD DLC, install DLC Merger before EEex. Launch through your EEex
 loader and retain `bg-redux-movement`, which holds all four profiles. Reinstall
 after a game update to refresh the hint. Existing settings are preserved.
 
-EET installation is verified, but EET gameplay remains pending. GOG 2.7, other
+Personal EET neutral/enemy overlap escape was confirmed October 9, 2026;
+broader campaign coverage remains incomplete. GOG 2.7, other
 executables, IWDEE and multiplayer are unvalidated. These accepted setups do not
 establish long campaign stability. The repository validation notes distinguish
 manual gameplay observations from simulated offline tests.

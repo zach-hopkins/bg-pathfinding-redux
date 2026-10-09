@@ -12,7 +12,7 @@
       "checksum": 0,
       "file_size": 7182336
     },
-    "runtime_sha256": "E54BE7E3E86A41A952E5D780752BAE6D00FC476C9E714683B95B29A0D16AA67A",
+    "runtime_sha256": "2ED3CA415EBB91BCF8CAD6341E397DB089A026AC07BEDD71E77E0F178BECF48E",
     "runtime_path": "bg-redux-movement/runtime/profiles/bg2ee-2.6.6.0.lua",
     "tested_eeex": "1.2.0",
     "accepted_date": "2026-10-06",
@@ -32,7 +32,7 @@
       "checksum": 7205089,
       "file_size": 7202696
     },
-    "runtime_sha256": "0C3AB974BFDF0E56DDBCA0E2D4F3E214DE88BC9BB4EC9119637771F233263733",
+    "runtime_sha256": "1C00405AAB4BBC8E34959558474810EACA4C87B9B1EFD038308D68DD60BF5362",
     "runtime_path": "bg-redux-movement/runtime/profiles/bg2ee-steam-2.7.3.0.lua",
     "tested_eeex": "1.3.0",
     "accepted_date": "2026-10-07",
@@ -54,7 +54,7 @@
       "checksum": 0,
       "file_size": 7124992
     },
-    "runtime_sha256": "D609FC9F165DDC338079A3A20D2337D870E3229CCF2C728E451F777B093EF356",
+    "runtime_sha256": "1E3ECBC4B680DFE5B232E9B63F79B7CB7349027995C4146A7AE8EB37D6EBD7BE",
     "runtime_path": "bg-redux-movement/runtime/profiles/bgee-steam-2.6.6.0.lua",
     "tested_eeex": "1.3.0",
     "gameplay_acceptance": "user-confirmed",
@@ -80,7 +80,7 @@
       "checksum": 7200563,
       "file_size": 7145352
     },
-    "runtime_sha256": "BB41BEFFAF8B71B3D86BF04BCBEFD904640059888E8AC626BAC145759BB2A98E",
+    "runtime_sha256": "6659F68F6EC2D94703DA63C8BEF07DFD5092D363A69BAC0A8DE4AF2422F020B8",
     "runtime_path": "bg-redux-movement/runtime/profiles/bgee-steam-2.7.3.0.lua",
     "tested_eeex": "1.3.0",
     "gameplay_acceptance": "user-confirmed",

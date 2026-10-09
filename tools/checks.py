@@ -13,12 +13,12 @@ import sys
 ROOT = Path(__file__).resolve().parent.parent
 WORK = ROOT / 'tests/.work'
 RUNTIME = ROOT / 'bg-redux-movement/runtime/M_BGREDX.lua'
-PIN = '5A1A5B3D5E79BFFA07CD60CABCBB8405C180707E4BE1730606D67D4A6907F4E8'
+PIN = '7134B27C1301A03E6DF5428F4ECED415990DD5A0F9A7375E870CD37225BFF4E4'
 PROFILE_PINS = {
-    'bgee-steam-2.7.3.0': 'BB41BEFFAF8B71B3D86BF04BCBEFD904640059888E8AC626BAC145759BB2A98E',
-    'bgee-steam-2.6.6.0': 'D609FC9F165DDC338079A3A20D2337D870E3229CCF2C728E451F777B093EF356',
-    'bg2ee-2.6.6.0': 'E54BE7E3E86A41A952E5D780752BAE6D00FC476C9E714683B95B29A0D16AA67A',
-    'bg2ee-steam-2.7.3.0': '0C3AB974BFDF0E56DDBCA0E2D4F3E214DE88BC9BB4EC9119637771F233263733',
+    'bgee-steam-2.7.3.0': '6659F68F6EC2D94703DA63C8BEF07DFD5092D363A69BAC0A8DE4AF2422F020B8',
+    'bgee-steam-2.6.6.0': '1E3ECBC4B680DFE5B232E9B63F79B7CB7349027995C4146A7AE8EB37D6EBD7BE',
+    'bg2ee-2.6.6.0': '2ED3CA415EBB91BCF8CAD6341E397DB089A026AC07BEDD71E77E0F178BECF48E',
+    'bg2ee-steam-2.7.3.0': '1C00405AAB4BBC8E34959558474810EACA4C87B9B1EFD038308D68DD60BF5362',
 }
 
 def sha(path):
@@ -123,6 +123,9 @@ def main():
         ran.append('quiet public logging and explicit diagnostics')
         lua_check(ROOT/'tests/support_context.lua',args.lua,dll)
         ran.append('safe diagnostic context')
+        lua_check(ROOT/'tests/overlap_escape.lua',args.lua,dll)
+        lua_check(ROOT/'tests/overlap_snapshot.lua',args.lua,dll)
+        ran.append('overlap escape policy and actual profile integration')
         lua_check(ROOT/'tests/profile_selection.lua',args.lua,dll)
         ran.append('profile selection and unsupported-build refusal')
         if args.game:

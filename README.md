@@ -12,6 +12,8 @@ doors, neutral NPCs, and enemies retain their native blocking behavior.
 - **Allied pass-through:** ordinary movement and attack approaches ignore allied
   bodies. Friendly summons are included. Combat and speed modifiers do not
   intentionally switch friendly collision back on.
+- **Overlap escape:** allied movers already inside a neutral or enemy footprint
+  can walk outward; normal blocking resumes after separation.
 - **Attack positioning:** melee attackers prefer distinct usable positions around
   their target while continuing to pass through allies on the way there.
 - **Gentle settle:** eligible stopped party members can make small adjustments
@@ -25,13 +27,13 @@ toggled independently. Existing saved settings survive reinstall.
 
 ## Compatibility
 
-**Version 0.1.5-preview** automatically selects one of four verified executable profiles.
+**Version 0.1.6-preview** automatically selects one of four verified executable profiles.
 
 | Setup | Status |
 | --- | --- |
 | Windows BG2EE 2.6.6.0 with EEex 1.2.0, single player | Accepted revision 53 |
 | Windows Steam BG2EE 2.7.3.0 with EEex 1.3.0, single player | Revision 54 confirmed working October 7, 2026 |
-| EET using a supported BG2EE executable | Installer verified; live EET gameplay acceptance pending |
+| EET using a supported BG2EE executable | Personal EET neutral/enemy overlap escape confirmed October 9, 2026; broader coverage incomplete |
 | Windows Steam BGEE and SoD 2.6.6.0 with EEex 1.3.0, single player | Revision 55 confirmed working October 7, 2026 |
 | Windows Steam BGEE and SoD 2.7.3.0 with EEex 1.3.0, single player | Revision 56 confirmed working October 7, 2026 |
 | Other executable versions or IWDEE | Not validated |
