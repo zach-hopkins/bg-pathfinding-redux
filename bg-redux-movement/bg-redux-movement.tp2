@@ -1,11 +1,11 @@
 BACKUP ~bg-redux-movement/backup~
 AUTHOR ~Zach Hopkins / BG Pathfinding Redux~
-VERSION ~0.1.6-preview~
+VERSION ~0.1.7-preview~
 README ~bg-redux-movement/README.md~
 
 BEGIN ~BG Pathfinding Redux: allied movement and spacing (BGEE / SoD / BG2EE preview)~
   DESIGNATED 0
-  REQUIRE_PREDICATE (GAME_IS ~bgee sod bg2ee eet~)
+  REQUIRE_PREDICATE (GAME_IS ~bgee bg2ee eet~)
     ~This preview requires BGEE, SoD, BG2EE or EET using a supported Windows executable.~
   REQUIRE_PREDICATE (FILE_EXISTS ~EEex.dll~)
     ~Install EEex first and launch through InfinityLoader.exe.~
@@ -30,7 +30,7 @@ BEGIN ~BG Pathfinding Redux: allied movement and spacing (BGEE / SoD / BG2EE pre
     PRINT ~WARNING: Executable hash differs from the verified builds. Installation will continue. Runtime will try a likely profile with native signature/layout checks; this executable has not been verified.~
   END
   OUTER_SPRINT bg_redux_family ~bg2ee~
-  ACTION_IF GAME_IS ~bgee sod~ BEGIN OUTER_SPRINT bg_redux_family ~bgee~ END
+  ACTION_IF GAME_IS ~bgee~ BEGIN OUTER_SPRINT bg_redux_family ~bgee~ END
   OUTER_SPRINT bg_redux_version ~2.6.6.0~
   ACTION_IF FILE_EXISTS ~data/PATCH27.BIF~ BEGIN OUTER_SPRINT bg_redux_version ~2.7.3.0~ END
   OUTER_SPRINT bg_redux_profile ~%bg_redux_family%-steam-%bg_redux_version%~

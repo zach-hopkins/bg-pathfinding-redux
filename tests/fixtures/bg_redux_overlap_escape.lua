@@ -30,7 +30,8 @@ function P.cell(q,x,y)
     local low,high=0,0
     for _,a in ipairs(q.actors) do
         local inside=P.footprint(a,x,y)
-        if inside and not P.ally(a.ea) and not P.outward(q.mover,a,x,y) then return false end
+        if inside and not ((not q.mover or P.ally(q.mover.ea)) and P.ally(a.ea))
+            and not enemy_policy.friend(q.mover,a) and not P.outward(q.mover,a,x,y) then return false end
         if a.painted==1 and a.removed==0 then
             if inside then
                 if a.category==0 then high=high+1 else low=low+1 end

@@ -1,17 +1,19 @@
 -- PRIVATE BG2EE Steam 2.7.3.0 / EEex1.3.0 compatibility candidate. Gameplay acceptance pending.
--- BG Redux Movement: guarded native profile; public package 0.1.2-preview.
--- Fresh installs enable all four features; existing settings are preserved.
+-- BG Redux Movement: guarded native profile; public package 0.1.7-preview.
+-- Core movement starts ON; optional switches persist; enemy cooperation defaults OFF.
 -- Generated from frozen52; persistent switches in bg-redux-movement.ini.
 if MRIP_BaselineRevision then return end
 MRIP_BaselineRevision = 54
 MRIP_TraceEnabled = false
+MRIP_EnemyPrototypeEnabled=false
 local release_config=(function()
 -- Persistent release switches, using EEex's installed INI API.
 local R={path='.\\bg-redux-movement.ini',section='Movement',keys={
-    {'Movement',true},{'AttackSpacing',true},{'GentleSettle',true},{'RoutePreference',false}}}
+    {'EnemyPrototype',false},{'AttackSpacing',true},{'GentleSettle',true},{'RoutePreference',false}}}
 function R.read(getter)
     assert(type(getter)=='function','EEex INI reader unavailable')
-    local options,warnings={},{}
+    -- Core movement starts ON every launch; ignore a legacy saved Movement key.
+    local options,warnings={Movement=true},{}
     for _,entry in ipairs(R.keys)do
         local key,default=entry[1],entry[2]
         local raw=getter(R.path,R.section,key,default and '1' or '0')
@@ -38,6 +40,7 @@ local previous_party = {}
 local key_start, key_snapshot, key_end = EEex_Key_GetFromName("F7"), EEex_Key_GetFromName("F8"), EEex_Key_GetFromName("F9")
 local key_preference=EEex_Key_GetFromName("F3")
 local key_settle = EEex_Key_GetFromName("F4")
+local key_enemy = EEex_Key_GetFromName("F2")
 local key_attack = EEex_Key_GetFromName("F5")
 local key_pass = EEex_Key_GetFromName("F6")
 local key_ctrl, key_shift = EEex_Key_GetFromName("Left Ctrl"), EEex_Key_GetFromName("Left Shift")
@@ -358,6 +361,72 @@ end
 local function summary()
     log(string.format("TRACE_SUMMARY published=%d consumed=%d dropped_busy=%d dropped_full=%d",u32(EEex_Read32(buffer+8)),u32(EEex_Read32(buffer+12)),u32(EEex_Read32(buffer+16)),u32(EEex_Read32(buffer+20))))
 end
+local enemy_policy=(function()
+-- Experimental normal-size cooperation, deliberately OFF on every launch.
+-- Matching hostile EA is a prototype approximation, not a faction registry.
+local P={}
+local targets={}
+local waits={}
+local attacks={[3]=true,[94]=true,[98]=true,[105]=true,[134]=true}
+function P.enemy(ea) return ea>=200 and ea<=255 end
+function P.enabled() return MRIP_EnemyPrototypeEnabled and MRIP_AttackSpacingEnabled end
+function P.mover(a) return P.enabled() and P.enemy(a.ea) and a.personal==3 end
+function P.friend(m,a)
+    return m and P.mover(m) and a.personal==3 and a.ea==m.ea
+        and m.attack_target~=a.id and a.attack_target~=m.id
+end
+function P.observe(id,owner,area,target,now)
+    if not P.enabled() then return end
+    local count=0
+    for other,r in pairs(targets) do
+        if now<r.updated or now-r.updated>1500 then targets[other]=nil
+        else count=count+1 end
+    end
+    if count>=256 and not targets[id] then return end
+    targets[id]={owner=owner,area=area,target=target,updated=now}
+end
+function P.bind(a,owner,area,now)
+    local r=targets[a.id]
+    if r and r.owner==owner and r.area==area and now and now>=r.updated and now-r.updated<=1500 then
+        a.attack_target=r.target
+    elseif r then targets[a.id]=nil end
+    return a
+end
+function P.hold(a,r,now)
+    return type(now)=='number' and r.enemy_ea and P.mover(a) and a.ea==r.enemy_ea and r.updated
+        and now>=r.updated and now-r.updated<=1500
+        and (not a.attack_target or a.attack_target==r.target)
+        and (attacks[a.action] or (a.action==0 or a.action==83) and now-r.updated<=600)
+end
+local function same(r,owner,area,target,target_ptr)
+    return r and r.owner==owner and r.area==area and r.target==target and r.target_ptr==target_ptr
+end
+function P.wait_active(id,owner,area,target,target_ptr,now)
+    local r=waits[id]
+    return type(now)=='number' and same(r,owner,area,target,target_ptr) and now>=r.since and now-r.since<600
+end
+function P.wait_recent(id,owner,area,target,target_ptr,now)
+    local r=waits[id]
+    return P.wait_active(id,owner,area,target,target_ptr,now) and now-r.checked<100
+end
+function P.wait(id,owner,area,target,target_ptr,now)
+    local r=waits[id]
+    if not same(r,owner,area,target,target_ptr) then
+        local count=0;for _ in pairs(waits) do count=count+1 end
+        if count>=256 and not r then return false end
+        r={owner=owner,area=area,target=target,target_ptr=target_ptr,since=now,checked=now}
+        waits[id]=r
+    end
+    r.checked=now
+    -- Keep the expired record until this engagement changes; no endless re-wait.
+    return P.wait_active(id,owner,area,target,target_ptr,now)
+end
+function P.cancel_wait(id) waits[id]=nil end
+function P.reset() targets={};waits={} end
+function P.clear(id) targets[id]=nil end
+return P
+
+end)()
 local overlap_escape=(function()
 -- Escape an existing neutral/enemy overlap; never admit entry from outside.
 -- Search cells are 16x12 world pixels. Permission lasts only while the mover
@@ -391,7 +460,8 @@ function P.cell(q,x,y)
     local low,high=0,0
     for _,a in ipairs(q.actors) do
         local inside=P.footprint(a,x,y)
-        if inside and not P.ally(a.ea) and not P.outward(q.mover,a,x,y) then return false end
+        if inside and not ((not q.mover or P.ally(q.mover.ea)) and P.ally(a.ea))
+            and not enemy_policy.friend(q.mover,a) and not P.outward(q.mover,a,x,y) then return false end
         if a.painted==1 and a.removed==0 then
             if inside then
                 if a.category==0 then high=high+1 else low=low+1 end
@@ -413,15 +483,15 @@ local function allied(a)
     return P.ally(a.ea) and a.personal >= 0 and a.personal <= 255 and a.x >= 0 and a.y >= 0
 end
 function P.mover_eligible(a)
-    return allied(a) and a.personal == 3 and a.painted == 0 and a.removed == 1
+    return (allied(a) or enemy_policy.mover(a)) and a.personal == 3 and a.painted == 0 and a.removed == 1
 end
 function P.mover_evidence(a)
     return string.format("mover_id=%d party=%s ea=%d state=0x%X base_state=0x%X personal=%d action=%d category=%d busy=%d bump=%d painted=%d removed=%d pos=%d,%d",
         a.id,tostring(a.party),a.ea,a.state,a.base_state,a.personal,a.action,
         a.category,a.busy,a.bump,a.painted,a.removed,a.x,a.y)
 end
-local function eligible_ally(a)
-    return allied(a) and a.painted == 1 and a.removed == 0
+local function eligible_ally(a,m)
+    return ((allied(m) and allied(a)) or enemy_policy.friend(m,a)) and a.painted == 1 and a.removed == 0
 end
 local function rejected_actor(a,dx,dy,envelope)
     local failed={}
@@ -465,7 +535,7 @@ function P.evaluate(q)
                 return false, "unknown-actor"
             end
             local dx, dy = math.abs(q.x - math.floor(a.x / 16)), math.abs(q.y - math.floor(a.y / 12))
-            if eligible_ally(a) then
+            if eligible_ally(a,m) then
                 -- Match the pinned AddObject footprint, including larger creatures.
                 local radius=math.max(0,math.floor((a.personal-1)/2))
                 if dx<=radius and dy<=radius and dx+dy<=math.floor(a.personal/2)+1 then
@@ -494,7 +564,7 @@ function P.evaluate(q)
     -- Portraits are fetched separately; each eligible contribution must appear
     -- in the area's enumeration. No stale position cache or stored sprite pointers.
     for _, a in ipairs(q.party) do
-        if a.id ~= m.id and eligible_ally(a)
+        if a.id ~= m.id and eligible_ally(a,m)
             and math.abs(q.x - math.floor(a.x / 16)) <= math.max(0,math.floor((a.personal-1)/2))
             and math.abs(q.y - math.floor(a.y / 12)) <= math.max(0,math.floor((a.personal-1)/2))
             and math.abs(q.x - math.floor(a.x / 16))+math.abs(q.y - math.floor(a.y / 12)) <= math.floor(a.personal/2)+1
@@ -528,13 +598,14 @@ local function keep_detail(kind,mover,point,reason,evidence,ordinal)
 end
 local function actor_record(sprite, party_ids)
     local ptr = EEex_UDToPtr(sprite)
-    return {id=sprite.m_id, party=party_ids[sprite.m_id] == ptr,
+    local a={id=sprite.m_id, party=party_ids[sprite.m_id] == ptr,
         ea=sprite.m_typeAI.m_EnemyAlly, state=sprite:getState(),
         base_state=sprite.m_baseStats.m_generalState, personal=sprite:getPersonalSpace(),
         x=sprite.m_pos.x, y=sprite.m_pos.y, action=sprite.m_curAction.m_actionID,
         category=EEex_Read32(ptr+0x492C), busy=EEex_Read32(ptr+0x493C),
         bump=EEex_ReadU8(ptr+0x4930), painted=EEex_Read32(ptr+0x5250),
         removed=EEex_Read32(ptr+0x5254)}
+    return enemy_policy.bind(a,ptr,sprite.m_pArea and EEex_UDToPtr(sprite.m_pArea) or 0,clock())
 end
 local function pass_decision(mover, point)
     if not movement_ready() then return false, "movement-off" end
@@ -1336,7 +1407,9 @@ function P.cell(q,x,y)
         -- Native movement temporarily removes an actor's painted footprint.
         -- Planned routes/endpoints still respect neutral and hostile bodies.
         -- This is private goal evaluation; no live occupancy is changed.
-        if not P.ally(a.ea) and P.footprint(a,x,y) then foreign=true end
+        local friendly=(not q.mover or P.ally(q.mover.ea)) and P.ally(a.ea)
+            or enemy_policy.friend(q.mover,a)
+        if not friendly and P.footprint(a,x,y) then foreign=true end
         if a.painted==1 and a.removed==0 then
             if P.footprint(a,x,y) then
                 -- Pinned AddObject: category0 uses0x70, nonzero uses0x0E.
@@ -1380,10 +1453,18 @@ function P.choose(q)
         if valid[key]==nil then valid[key]=P.cell(q,x,y) end
         return valid[key]
     end
+    local function unclaimed(x,y)
+        if not q.enemy then return true end
+        for _,r in ipairs(q.reservations) do
+            local dx,dy=x-r.x,y-r.y
+            if r.claim and dx*dx+dy*dy<4 then return false end
+        end
+        return true
+    end
     if q.previous then
         local x,y=q.previous.x,q.previous.y
         local dx,dy=x-tx,y-ty
-        if dx*dx+dy*dy<=radius*radius and not P.footprint(t,x,y) and open(x,y) and sight(q,x,y,tx,ty) then
+        if dx*dx+dy*dy<=radius*radius and not P.footprint(t,x,y) and open(x,y) and sight(q,x,y,tx,ty) and unclaimed(x,y) then
             return {x=x,y=y},'retained'
         end
     end
@@ -1391,9 +1472,13 @@ function P.choose(q)
     local top,bottom=math.max(0,math.min(sy,ty-radius)-2),math.min(q.height-1,math.max(sy,ty+radius)+2)
     -- A bounded approach search; exhaustion falls back to native movement.
     local queue,head,visited={{sx,sy}},1,1
+    local enemy_budget=false
     cells[sy*q.width+sx]=0
     local dirs={{1,0},{0,1},{-1,0},{0,-1},{1,1},{-1,1},{-1,-1},{1,-1}}
     while head<=#queue and visited<=4096 do
+        if q.enemy and (visited>512 or head%16==0 and q.clock()-q.started>2) then
+            enemy_budget=true;break
+        end
         local p=queue[head];head=head+1
         local distance=cells[p[2]*q.width+p[1]]
         for _,d in ipairs(dirs) do
@@ -1412,12 +1497,14 @@ function P.choose(q)
         -- The attacked body's allegiance does not affect final frontage.
         -- This restriction is only an endpoint preference: friendly bodies
         -- remain traversable in the approach search and the live engine.
-        return dx*dx+dy*dy<=radius*radius and not P.footprint(t,x,y) and open(x,y) and cells[y*q.width+x]~=nil and sight(q,x,y,tx,ty)
+        return dx*dx+dy*dy<=radius*radius and not P.footprint(t,x,y)
+            and (not q.enemy or cells[y*q.width+x]~=nil) and open(x,y) and cells[y*q.width+x]~=nil and sight(q,x,y,tx,ty)
     end
-    local best,score
+    local best,score,reserved
     for y=math.max(0,ty-radius),math.min(q.height-1,ty+radius) do
         for x=math.max(0,tx-radius),math.min(q.width-1,tx+radius) do
-            if candidate(x,y) then
+            if candidate(x,y) and not unclaimed(x,y) then reserved=true end
+            if candidate(x,y) and unclaimed(x,y) then
                 local penalty=0
                 for _,r in ipairs(q.reservations) do
                     local dx,dy=x-r.x,y-r.y
@@ -1431,17 +1518,28 @@ function P.choose(q)
             end
         end
     end
-    return best,best and 'selected' or (visited>4096 and 'search-budget' or 'no-valid-destination')
+    return best,best and (enemy_budget and 'selected-partial' or 'selected')
+        or (reserved and 'enemy-slots-reserved' or enemy_budget and 'enemy-search-budget' or visited>4096 and 'search-budget' or 'no-valid-destination')
 end
 return P
 
 end)()
 local attack_reservations={}
 local attack_failed_approaches={}
+local enemy_query_window,enemy_query_count=nil,0
 local attack_decision_seen,attack_decision_count,attack_decision_run={},0,nil
 MRIP_AttackSpacingEnabled=true
 local attack_actions={[3]=true,[94]=true,[98]=true,[105]=true,[134]=true}
-local function attack_reset() attack_reservations={};attack_failed_approaches={} end
+local function attack_reset() attack_reservations={};attack_failed_approaches={};enemy_query_window=nil;enemy_query_count=0;enemy_policy.reset() end
+function MRIP_ToggleEnemyPrototype()
+    if not MRIP_TraceEnabled then feedback('movement unavailable; check EEex log');return end
+    if active then MRIP_Stop('enemy-mode-change') end
+    MRIP_EnemyPrototypeEnabled=not MRIP_EnemyPrototypeEnabled
+    attack_reset();enemy_policy.reset()
+    log('ENEMY_PROTOTYPE enabled='..tostring(MRIP_EnemyPrototypeEnabled)..' scope=same-hostile-EA-size3')
+    feedback(MRIP_EnemyPrototypeEnabled and 'enemy cooperation prototype ON; keep attack spacing ON' or 'enemy cooperation prototype OFF')
+end
+
 -- Capture-only, bounded decision evidence. Logging never changes admission.
 local function attack_diagnose(mover,target,reach,stage,selected,reason)
     if not active then return end
@@ -1471,20 +1569,29 @@ local function attack_select(mover,target,reach,point)
     if not MRIP_AttackSpacingEnabled then return false,'spacing-off' end
     local now=movement_ready()
     if not now then return false,'movement-off' end
-    if not mover or not target or mover:getPortraitIndex()<0 or not attack_actions[mover.m_curAction.m_actionID]
-        or not attack_policy.ally(mover.m_typeAI.m_EnemyAlly) or not EEex_GameObject_IsSprite(target,true) then return false,'mover-or-target-ineligible' end
+    if not mover or not target or not attack_actions[mover.m_curAction.m_actionID]
+        or not EEex_GameObject_IsSprite(target,true) then return false,'mover-or-target-ineligible' end
+    local enemy=enemy_policy.enabled() and enemy_policy.enemy(mover.m_typeAI.m_EnemyAlly) and mover:getPersonalSpace()==3
+    if not enemy and (mover:getPortraitIndex()<0 or not attack_policy.ally(mover.m_typeAI.m_EnemyAlly)) then
+        return false,'mover-or-target-ineligible'
+    end
     target=EEex_CastUD(target,'CGameSprite')
     if not mover.m_pArea or not target.m_pArea then return false,'no-area' end
     local area=mover.m_pArea
     local area_ptr=EEex_UDToPtr(area)
     if EEex_UDToPtr(target.m_pArea)~=area_ptr then return false,'different-area' end
     local mp,tp=EEex_UDToPtr(mover),EEex_UDToPtr(target)
+    if enemy then enemy_policy.observe(mover.m_id,mp,area_ptr,target.m_id,now) end
+    if enemy and enemy_policy.wait_recent(mover.m_id,mp,area_ptr,target.m_id,tp,now) then
+        point.x=mover.m_pos.x;point.y=mover.m_pos.y;return true,'enemy-slot-wait'
+    end
     -- A failed custom approach must not repeatedly replace native fallback
     -- requests. Yield this actor/target pair until an engagement reset.
     -- Store only identity values; no retained game userdata or engine writes.
     local failed=attack_failed_approaches[mover.m_id]
     if failed then
         if failed.owner==mp and failed.target==target.m_id and failed.target_ptr==tp and failed.area==area_ptr then
+            if enemy then failed.updated=now end
             return false,'native-handoff'
         end
         attack_failed_approaches[mover.m_id]=nil
@@ -1497,27 +1604,39 @@ local function attack_select(mover,target,reach,point)
     local path=EEex_ReadPtr(mp+0x4758)
     if previous and path==0 and request==0 and (math.floor(mover.m_pos.x/16)~=previous.x or math.floor(mover.m_pos.y/12)~=previous.y) then
         attack_reservations[mover.m_id]=nil
-        attack_failed_approaches[mover.m_id]={owner=mp,target=target.m_id,target_ptr=tp,area=area_ptr}
+        attack_failed_approaches[mover.m_id]={owner=mp,target=target.m_id,target_ptr=tp,area=area_ptr,updated=now,enemy_ea=enemy and mover.m_typeAI.m_EnemyAlly or nil}
         if active then log(string.format('ATTACK_SLOT_FALLBACK mover=%d target=%d reason=path-ended-before-slot',mover.m_id,target.m_id)) end
         log(string.format('ATTACK_NATIVE_HANDOFF mover=%d target=%d reason=path-ended-before-slot scope=engagement',mover.m_id,target.m_id))
         return false,'path-ended-before-slot'
     end
     if previous and request~=0 and now>=previous.assigned and now-previous.assigned<300
         and EEex_ReadU8(request)<=1 then point.x=previous.x*16+8;point.y=previous.y*12+6;return true,'pending-slot' end
+    if enemy then
+        if not enemy_query_window or now<enemy_query_window or now-enemy_query_window>=100 then
+            enemy_query_window=now;enemy_query_count=0
+        end
+        if enemy_query_count>=8 then return false,'enemy-query-budget' end
+        enemy_query_count=enemy_query_count+1
+    end
     local bitmap=area_ptr+0xA60
     local width,height=EEex_Read32(bitmap+0x138),EEex_Read32(bitmap+0x13C)
     local map=EEex_ReadPtr(bitmap+0x120)
     if map==0 then return false,'no-map' end
     local actors,identities={},{}
+    local enemy_overflow=false
     area:forAllOfTypeInRange(mover.m_pos.x,mover.m_pos.y,CAIObjectType.ANYONE,32767,function(object)
         if not object then error('unresolved attack area object') end
         if EEex_GameObject_IsSprite(object,true) then
-            if #actors>=4096 then error('attack actor limit') end
+            if #actors>=(enemy and 128 or 4096) then
+                if enemy then enemy_overflow=true;return end
+                error('attack actor limit')
+            end
             local s=EEex_CastUD(object,'CGameSprite')
             local a=actor_record(s,{})
             actors[#actors+1]=a;identities[a.id]={ptr=EEex_UDToPtr(s),action=a.action,actor=a}
         end
     end,0,0)
+    if enemy and (enemy_overflow or clock()-now>2) then return false,'enemy-actor-budget' end
     -- NumCreature-style enumeration is not an identity registry: it scans the
     -- front list and filters activity/animation. Native Attack already passed
     -- these same-area arguments to this hook. Include them directly if omitted,
@@ -1525,7 +1644,10 @@ local function attack_select(mover,target,reach,point)
     local function include(s,ptr)
         local old=identities[s.m_id]
         if old then return old.ptr==ptr end
-        if #actors>=4096 then error('attack actor limit') end
+        if #actors>=(enemy and 128 or 4096) then
+            if enemy then return false end
+            error('attack actor limit')
+        end
         local a=actor_record(s,{})
         actors[#actors+1]=a;identities[a.id]={ptr=ptr,action=a.action,actor=a}
         return true
@@ -1535,19 +1657,24 @@ local function attack_select(mover,target,reach,point)
     local occupied={}
     for id,r in pairs(attack_reservations) do
         local a=identities[id]
-        if r.area~=area_ptr or not a or a.ptr~=r.owner or not attack_actions[a.action]
+        if r.area~=area_ptr or not a or a.ptr~=r.owner or not (r.enemy_ea and enemy_policy.hold(a.actor,r,now) or not r.enemy_ea and attack_actions[a.action])
             or now<r.updated or now-r.updated>1500 then
             attack_reservations[id]=nil
         elseif id~=mover.m_id and r.target==target.m_id and r.target_ptr==tp then occupied[#occupied+1]=r end
     end
     -- Existing friendly positions are only a soft preference for endpoints.
     for _,a in ipairs(actors) do
-        if a.id~=mover.m_id and attack_policy.ally(a.ea) then occupied[#occupied+1]={x=math.floor(a.x/16),y=math.floor(a.y/12)} end
+        if a.id~=mover.m_id and ((attack_policy.ally(mover.m_typeAI.m_EnemyAlly) and attack_policy.ally(a.ea)) or enemy_policy.friend(identities[mover.m_id].actor,a)) then occupied[#occupied+1]={x=math.floor(a.x/16),y=math.floor(a.y/12)} end
     end
     local selected,reason=attack_policy.choose({mover=identities[mover.m_id].actor,target=identities[target.m_id].actor,
         width=width,height=height,range=reach,actors=actors,reservations=occupied,previous=previous,
+        enemy=enemy,clock=clock,started=now,
         read=function(x,y) return EEex_ReadU8(map+y*width+x) end})
     if not selected then
+        if enemy and reason=='enemy-slots-reserved' and enemy_policy.wait(mover.m_id,mp,area_ptr,target.m_id,tp,now) then
+            attack_reservations[mover.m_id]=nil
+            point.x=mover.m_pos.x;point.y=mover.m_pos.y;return true,'enemy-slot-wait'
+        end
         attack_reservations[mover.m_id]=nil
         if active then log(string.format('ATTACK_SLOT_FALLBACK mover=%d target=%d reason=%s',mover.m_id,target.m_id,reason)) end
         return false,reason
@@ -1557,9 +1684,10 @@ local function attack_select(mover,target,reach,point)
         attack_reservations[mover.m_id]=nil
         return false,'native-goal-ended-before-slot'
     end
+    if enemy then enemy_policy.cancel_wait(mover.m_id) end
     local changed=not previous or previous.x~=selected.x or previous.y~=selected.y
     attack_reservations[mover.m_id]={owner=mp,target=target.m_id,target_ptr=tp,area=area_ptr,x=selected.x,y=selected.y,
-        updated=now,assigned=changed and now or previous.assigned}
+        updated=now,assigned=changed and now or previous.assigned,claim=enemy,enemy_ea=enemy and mover.m_typeAI.m_EnemyAlly or nil}
     point.x=selected.x*16+8;point.y=selected.y*12+6
     if changed and active then log(string.format('ATTACK_SLOT mover=%d target=%d point=%d,%d reach=%d reason=%s',mover.m_id,target.m_id,point.x,point.y,reach,reason)) end
     return true,missing_target and 'selected-target-not-enumerated' or reason
@@ -1571,6 +1699,11 @@ function MRIP_AttackPosition(mover,target,reach,point)
         log('ATTACK_SLOT_ERROR fallback='..tostring(selected))
         return false
     end
+    if not selected and reason and reason:find('enemy-',1,true)==1 and reason:find('budget',1,true)
+        and mover and target and mover.m_pArea and enemy_policy.enabled()
+        and enemy_policy.wait_active(mover.m_id,EEex_UDToPtr(mover),EEex_UDToPtr(mover.m_pArea),target.m_id,EEex_UDToPtr(target),clock()) then
+        point.x=mover.m_pos.x;point.y=mover.m_pos.y;selected=true;reason='enemy-slot-wait'
+    end
     pcall(attack_diagnose,mover,target,reach,'position',selected,reason)
     return selected
 end
@@ -1581,13 +1714,25 @@ function MRIP_AttackContinue(mover,target,reach)
         if not now then return false end
         if not target or not EEex_GameObject_IsSprite(target,true) then return false end
         target=EEex_CastUD(target,'CGameSprite')
+        if mover and mover.m_pArea and target.m_pArea and attack_actions[mover.m_curAction.m_actionID]
+            and enemy_policy.enabled() and enemy_policy.enemy(mover.m_typeAI.m_EnemyAlly) and mover:getPersonalSpace()==3
+            and EEex_UDToPtr(mover.m_pArea)==EEex_UDToPtr(target.m_pArea)
+            and enemy_policy.wait_active(mover.m_id,EEex_UDToPtr(mover),EEex_UDToPtr(mover.m_pArea),target.m_id,EEex_UDToPtr(target),now) then
+            return true,'enemy-slot-wait'
+        end
         local r=mover and attack_reservations[mover.m_id]
         if not r then return false,'no-assignment' end
         if not r or not target or not mover.m_pArea or not target.m_pArea or not attack_actions[mover.m_curAction.m_actionID]
             or r.owner~=EEex_UDToPtr(mover) or r.target~=target.m_id or r.target_ptr~=EEex_UDToPtr(target)
             or r.area~=EEex_UDToPtr(mover.m_pArea) or r.area~=EEex_UDToPtr(target.m_pArea)
-            or not attack_policy.ally(mover.m_typeAI.m_EnemyAlly)
+            or not (attack_policy.ally(mover.m_typeAI.m_EnemyAlly) or enemy_policy.enabled() and enemy_policy.enemy(mover.m_typeAI.m_EnemyAlly) and mover:getPersonalSpace()==3)
             or now<r.updated or now-r.updated>1500 or reach<1 or reach>6 then return false end
+        -- The actual Attack callback proves this engagement is still current.
+        -- Refresh standing attackers too: a native in-range stop is not slot release.
+        if r.enemy_ea then
+            if not enemy_policy.enabled() or r.enemy_ea~=mover.m_typeAI.m_EnemyAlly then return false end
+            r.updated=now
+        end
         local mp=EEex_UDToPtr(mover)
         if EEex_ReadPtr(mp+0x4758)==0 or EEex_Read32(mp+0x4AA8)~=r.x*16+8 or EEex_Read32(mp+0x4AAC)~=r.y*12+6 then return false end
         local dx,dy=r.x-math.floor(target.m_pos.x/16),r.y-math.floor(target.m_pos.y/12)
@@ -2216,7 +2361,7 @@ local function movement_party(now)
             seen[id]=true
             for _,cache in ipairs({attack_reservations,attack_failed_approaches}) do
                 local r=cache[id]
-                if r and (r.owner~=ptr or r.area~=area or not attack_policy.ally(sprite.m_typeAI.m_EnemyAlly)) then
+                if r and (r.owner~=ptr or r.area~=area or r.enemy_ea and r.enemy_ea~=sprite.m_typeAI.m_EnemyAlly or not (attack_policy.ally(sprite.m_typeAI.m_EnemyAlly) or enemy_policy.enabled() and enemy_policy.enemy(sprite.m_typeAI.m_EnemyAlly) and sprite:getPersonalSpace()==3)) then
                     cache[id]=nil;movement_idle[id]=nil
                 end
             end
@@ -2235,14 +2380,37 @@ local function movement_party(now)
             end
         end
     end
+    if enemy_policy.enabled() then
+        local count=0
+        for _,cache in ipairs({attack_reservations,attack_failed_approaches}) do
+        for id,r in pairs(cache) do
+            if not seen[id] and count<256 and (not r.updated or now>=r.updated and now-r.updated<=1500) then
+                count=count+1
+                local ok,valid=pcall(function()
+                    local sprite=EEex_GameObject_Get(id)
+                    if not sprite or not EEex_GameObject_IsSprite(sprite,true) then return false end
+                    sprite=EEex_CastUD(sprite,'CGameSprite')
+                    return EEex_UDToPtr(sprite)==r.owner and sprite.m_pArea and EEex_UDToPtr(sprite.m_pArea)==r.area
+                        and enemy_policy.enemy(sprite.m_typeAI.m_EnemyAlly) and sprite:getPersonalSpace()==3
+                        and (r.enemy_ea and enemy_policy.hold({ea=sprite.m_typeAI.m_EnemyAlly,
+                            personal=sprite:getPersonalSpace(),action=sprite.m_curAction.m_actionID},r,now)
+                            or not r.enemy_ea and attack_actions[sprite.m_curAction.m_actionID])
+                end)
+                if ok and valid then seen[id]=true end
+            end
+        end
+        end
+    end
     for _,cache in ipairs({attack_reservations,attack_failed_approaches,movement_idle}) do
         for id in pairs(cache) do if not seen[id] then cache[id]=nil end end
     end
 end
 function MRIP_MovementAction(sprite,action)
     if not pass_mode or not sprite or not action then return end
+    enemy_policy.clear(sprite.m_id)
     settle_action(sprite,action)
-    if sprite:getPortraitIndex()>=0 and action.m_actionID==23 then
+    if (sprite:getPortraitIndex()>=0 or enemy_policy.enabled() and enemy_policy.enemy(sprite.m_typeAI.m_EnemyAlly)) and action.m_actionID==23 then
+        enemy_policy.cancel_wait(sprite.m_id)
         attack_reservations[sprite.m_id]=nil;attack_failed_approaches[sprite.m_id]=nil
         movement_idle[sprite.m_id]=nil
     end
@@ -2284,7 +2452,7 @@ function MRIP_Start(label)
     active=true
     log('START label='..tostring(label or 'hotkey'):gsub('[%c]',' ')..'; automatic capture limit=20000ms')
     log('PASS_RUN enabled='..tostring(pass_mode))
-    log('ATTACK_RUN enabled='..tostring(MRIP_AttackSpacingEnabled))
+    log('ATTACK_RUN enabled='..tostring(MRIP_AttackSpacingEnabled)..' enemy_prototype='..tostring(MRIP_EnemyPrototypeEnabled))
     log('PREFERENCE_RUN enabled='..tostring(MRIP_PreferenceEnabled))
     movement_status()
     for id,r in pairs(attack_failed_approaches) do
@@ -2355,7 +2523,8 @@ function P.plan(q,occupancy)
             or not ((a.painted==1 and a.removed==0) or (a.painted==0 and a.removed==1)) then
             return nil,'unknown-actor'
         end
-        if (occupancy.ally(a.ea) or overlap_escape.overlapping(q.mover,a)) and a.painted==1 then
+        if ((not q.mover or occupancy.ally(q.mover.ea)) and occupancy.ally(a.ea)
+            or enemy_policy.friend(q.mover,a) or overlap_escape.overlapping(q.mover,a)) and a.painted==1 then
             local radius=math.max(0,math.floor((a.personal-1)/2))
             local cx,cy=math.floor(a.x/16),math.floor(a.y/12)
             local left,right=math.max(0,cx-radius),math.min(q.width-1,cx+radius)
@@ -2413,7 +2582,7 @@ local function snapshot_select(request,private)
     if EEex_ReadPtr(mp+0x47F0)~=request or EEex_ReadPtr(request+0x18)~=bitmap
         or EEex_ReadPtr(bitmap+0x128)~=private then return false,'ownership' end
     local m=actor_record(mover,{})
-    if not attack_policy.ally(m.ea) or m.personal~=3 then return false,'mover-size-or-allegiance' end
+    if not (attack_policy.ally(m.ea) or enemy_policy.mover(m)) or m.personal~=3 then return false,'mover-size-or-allegiance' end
     local live=EEex_ReadPtr(bitmap+0x120)
     local width,height=EEex_Read32(bitmap+0x138),EEex_Read32(bitmap+0x13C)
     if live==0 or private==live or width<1 or width>320 or height<1 or height>320 then return false,'bitmap' end
@@ -2432,8 +2601,18 @@ local function snapshot_select(request,private)
     if identities[m.id]~=mp then return false,'incomplete-enumeration' end
     for slot=0,5 do
         local s=EEex_Sprite_GetInPortrait(slot)
-        if s and s.m_pArea and EEex_UDToPtr(s.m_pArea)==ap and identities[s.m_id]~=EEex_UDToPtr(s) then
-            return false,'missing-party-actor'
+        if s and s.m_pArea and EEex_UDToPtr(s.m_pArea)==ap then
+            local ptr=EEex_UDToPtr(s)
+            if identities[s.m_id] and identities[s.m_id]~=ptr then return false,'party-identity-conflict' end
+            if not identities[s.m_id] then
+                -- Enemy searches retain opposing portraits even when the native
+                -- activity-filtered scan omitted them. Counter/paint checks below
+                -- still prove every changed cell; omission never clears a blocker.
+                if not enemy_policy.mover(m) then return false,'missing-party-actor' end
+                if #actors>=256 or not EEex_GameObject_IsSprite(s,true) then return false,'missing-party-actor' end
+                local a=actor_record(EEex_CastUD(s,'CGameSprite'),{})
+                identities[a.id]=ptr;actors[#actors+1]=a
+            end
         end
     end
     local patches,reason,kept,checked=snapshot_policy.plan({width=width,height=height,actors=actors,mover=m,
@@ -4422,6 +4601,7 @@ if not install_ok then log("DISABLED "..tostring(install_err)) end
 if install_ok then preference_install() end
 -- Settings change activation/defaults only; all52 movement policy is retained.
 MRIP_AttackSpacingEnabled=release_options.AttackSpacing
+MRIP_EnemyPrototypeEnabled=release_options.EnemyPrototype
 MRIP_SettleEnabled=release_options.GentleSettle
 if release_options.RoutePreference and preference_available then
     MRIP_PreferenceEnabled=true;EEex_Write32(preference_state,1)
@@ -4431,7 +4611,7 @@ local function release_persist(key,value)
     if not ok then log('CONFIG_WRITE_ERROR key='..key..' error='..tostring(err)) end
 end
 for _,entry in ipairs({
-    {'MRIP_TogglePass','Movement',function()return pass_mode end},
+    {'MRIP_ToggleEnemyPrototype','EnemyPrototype',function()return MRIP_EnemyPrototypeEnabled end},
     {'MRIP_ToggleAttackSpacing','AttackSpacing',function()return MRIP_AttackSpacingEnabled end},
     {'MRIP_ToggleSettle','GentleSettle',function()return MRIP_SettleEnabled end},
     {'MRIP_TogglePreference','RoutePreference',function()return MRIP_PreferenceEnabled end}})do
@@ -4447,7 +4627,7 @@ if install_ok then
         MRIP_StartupActivation=true
         local ok,err=pcall(function()
             if release_options.Movement and MRIP_TraceEnabled and not pass_mode then MRIP_TogglePass() end
-            log('RELEASE_READY version=0.1.2-preview movement='..tostring(pass_mode)
+            log('RELEASE_READY version=0.1.7-preview movement='..tostring(pass_mode)
                 ..' preference='..tostring(MRIP_PreferenceEnabled)..' spacing='..tostring(MRIP_AttackSpacingEnabled)
                 ..' settle='..tostring(MRIP_SettleEnabled)..' capture='..tostring(active))
         end)
@@ -4458,7 +4638,8 @@ end
 EEex_Key_AddPressedListener(function(key)
     if e==nil or worldScreen~=e:GetActiveEngine() or Infinity_TextEditHasFocus()~=0 or not EEex_Key_IsDown(key_ctrl) or not EEex_Key_IsDown(key_shift) then return end
     local ok,err=pcall(function()
-        if key==key_preference then MRIP_TogglePreference()
+        if key==key_enemy then MRIP_ToggleEnemyPrototype()
+        elseif key==key_preference then MRIP_TogglePreference()
         elseif key==key_settle then MRIP_ToggleSettle()
         elseif key==key_attack then MRIP_ToggleAttackSpacing()
         elseif key==key_pass then MRIP_TogglePass()
@@ -4477,4 +4658,4 @@ EEex_Action_AddSpriteStartedActionListener(function(sprite,action)
     if not ok then log("ERROR action-listener "..tostring(err)) end
 end)
 for _,key in ipairs(release_config_warnings)do log('CONFIG_DEFAULT key='..key)end
-log("LOADED revision=54 trace_enabled="..tostring(MRIP_TraceEnabled).." overlap_escape=1")
+log("LOADED revision=54 trace_enabled="..tostring(MRIP_TraceEnabled).." overlap_escape=1 enemy_prototype=4-saved-opt-in")

@@ -1,3 +1,17 @@
+# Optional enemy cooperation — 0.1.7-preview, 2026-10-09
+
+The user accepted dedicated Windows BG2EE 2.6.6.0 enemy doorway/open approach
+tests. Enemy-to-enemy pass-through remains opt-in with separate preferred melee
+endpoints, bounded waiting and native fallback. Four-profile offline checks cover
+212 enemy cooperation and 180 reservation assertions. Saved optional settings and
+session-only allied movement pass 427 configuration assertions and actual-profile
+startup fixtures. Enemy gameplay has not been retested on every profile.
+
+The 0.1.7 installer passes real WeiDU install/reinstall/uninstall, settings
+preservation, migration and permissive executable-name/hash cases in disposable
+BG2EE and EET-marker labs. Support collection passes its read-only/bounded-log
+checks. No game was launched by the agent. A packaged QUICKSTART covers controls.
+
 # Overlap escape — 0.1.6-preview, 2026-10-09
 
 The user confirmed separation from both neutral and enemy party members after

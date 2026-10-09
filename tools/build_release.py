@@ -40,6 +40,7 @@ def main():
         'bg-redux-movement/third_party/weidu/source-v251.00.zip':source,
         'bg-redux-movement/third_party/weidu/provenance.json':(ROOT/'tools/weidu-provenance.json').read_bytes(),
     }
+    files['bg-redux-movement/QUICKSTART.md']=(ROOT/'bg-redux-movement/QUICKSTART.md').read_bytes()
     files['bg-redux-movement/support/Collect BG Redux Support.cmd']=(ROOT/'bg-redux-movement/support/Collect BG Redux Support.cmd').read_bytes()
     files['Collect BG Redux Support.cmd']=(ROOT/'bg-redux-movement/support/Collect BG Redux Support.cmd').read_bytes()
     files['bg-redux-movement/support/collect-support.ps1']=(ROOT/'bg-redux-movement/support/collect-support.ps1').read_bytes()

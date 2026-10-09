@@ -4,9 +4,10 @@ local function embedded(name,finish,bindings)
     local stop=assert(source:find(finish,start,true))
     return assert(loadstring((bindings or '')..source:sub(start,stop-1)..'\nreturn '..name:match('^[%w_]+')))()
 end
-snapshot_escape_fixture=embedded('overlap_escape=','local pass_policy')
-local P=embedded('snapshot_policy=','-- SearchThreadMain','local overlap_escape=snapshot_escape_fixture\n')
-local occupancy=embedded('attack_policy=','local attack_reservations')
+snapshot_enemy_fixture=embedded('enemy_policy=','local overlap_escape')
+snapshot_escape_fixture=embedded('overlap_escape=','local pass_policy','local enemy_policy=snapshot_enemy_fixture\n')
+local P=embedded('snapshot_policy=','-- SearchThreadMain','local enemy_policy=snapshot_enemy_fixture\nlocal overlap_escape=snapshot_escape_fixture\n')
+local occupancy=embedded('attack_policy=','local attack_reservations','local enemy_policy=snapshot_enemy_fixture\n')
 local checks=0
 local function check(v,msg) checks=checks+1;assert(v,msg) end
 local function actor(id,category,ea)
@@ -94,7 +95,7 @@ local function fixture()
         for _,s in ipairs(sprites) do callback(s) end
     end
     snapshot_test={policy=P,occupancy=occupancy,log=function(s) logs[#logs+1]=s end,on=true}
-    assert(loadstring('local base=0x140000000\nlocal active=true\nlocal log=snapshot_test.log\n'
+    assert(loadstring('local enemy_policy=snapshot_enemy_fixture\nlocal function clock() return 1000 end\nlocal base=0x140000000\nlocal active=true\nlocal log=snapshot_test.log\n'
         ..'local snapshot_policy,attack_policy=snapshot_test.policy,snapshot_test.occupancy\n'
         ..'local function movement_ready() return snapshot_test.on and 1000 or nil end\n'..shared..adapter))()
     return {mem=mem,logs=logs,writes=writes,mover=mover,ally=ally,sprites=sprites,area=area,
@@ -164,5 +165,24 @@ for _,ea in ipairs({128,255}) do
     check(not MRIP_SearchSnapshot(f.request,f.private),'outside mover retains private escape permission')
     check(f.mem[f.private+10*20+10]==16,'normal blocker footprint lost after separation')
 end
+MRIP_EnemyPrototypeEnabled=true;MRIP_AttackSpacingEnabled=true
+f=fixture();f.mover.m_typeAI.m_EnemyAlly=255;f.ally.m_typeAI.m_EnemyAlly=255
+check(MRIP_SearchSnapshot(f.request,f.private),'enemy adapter did not open cooperating footprints')
+check(#f.writes==18,'enemy adapter footprint count differs from native paint')
+f=fixture();f.mover.m_typeAI.m_EnemyAlly=255
+MRIP_SearchSnapshot(f.request,f.private)
+check(f.mem[f.private+210]==16,'enemy adapter removed opposing party footprint')
+f=fixture();f.mover.m_typeAI.m_EnemyAlly=255;f.ally.m_typeAI.m_EnemyAlly=128
+MRIP_SearchSnapshot(f.request,f.private)
+check(f.mem[f.private+210]==16,'enemy adapter removed neutral footprint')
+f=fixture();f.mover.m_typeAI.m_EnemyAlly=255
+f.area.forAllOfTypeInRange=function(_,x,y,kind,r,callback) callback(f.mover) end
+check(MRIP_SearchSnapshot(f.request,f.private),'enemy search failed when native scan omitted opposing portrait')
+check(f.mem[f.private+210]==16,'omitted opposing portrait lost its blocking footprint')
+f=fixture();f.mover.m_typeAI.m_EnemyAlly=255
+f.area.forAllOfTypeInRange=function(_,x,y,kind,r,callback) callback(f.mover) end
+f.mem[f.ally.ptr+0x5254]=1
+check(not MRIP_SearchSnapshot(f.request,f.private) and #f.writes==0,'unknown omitted portrait paint phase bypassed proof')
+MRIP_EnemyPrototypeEnabled=false
 snapshot_escape_fixture=nil
 print('Overlap snapshot adapter: '..checks..' assertions passed; writes confined to owned private bitmap')

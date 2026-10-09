@@ -1,4 +1,4 @@
-# BG Pathfinding Redux — 0.1.6 preview
+# BG Pathfinding Redux — 0.1.7 preview
 
 Allied creatures pass through one another while walls, closed doors, neutral
 NPCs and enemies retain their native blocking behavior. Party melee approach
@@ -9,13 +9,17 @@ Allied movers already overlapping a neutral or enemy can walk outward to escape.
 Normal blocking resumes on separation. Escape follows the Movement setting; it
 does not allow entering blockers from outside or crossing walls/closed doors.
 
-Allied movers already overlapping a neutral or enemy can walk outward to escape.
-Normal blocking resumes on separation. This is part of the Movement setting; it
-does not allow entering blockers from outside or crossing walls/closed doors.
+Optional enemy cooperation (Ctrl+Shift+F2, default OFF) lets normal-sized enemies
+with matching hostile allegiance pass through each other and prefer separate melee
+positions. They continue to block the party and neutral NPCs. Known current attack
+targets remain blocking; allegiance grouping is experimental, not a complete
+faction model. Requires allied movement and attack spacing ON.
+
+See [QUICKSTART.md](QUICKSTART.md) for the hotkey guide.
 
 ## Tested setups and updates
 
-This 0.1.6-preview package automatically selects the supported native profile for:
+This 0.1.7-preview package automatically selects the supported native profile for:
 
 - Windows BG2EE 2.6.6.0 / EEex 1.2.0 (revision 53).
 - Windows Steam BG2EE 2.7.3.0 / EEex 1.3.0 (revision 54), confirmed working
@@ -73,14 +77,17 @@ The installer creates the supplied defaults file only when no settings file exis
 
 Edit `bg-redux-movement.ini` with1/0 and restart, or toggle during play:
 
-| Left Ctrl+Left Shift+key | Persistent setting |
+| Left Ctrl+Left Shift+key | Setting |
 |---|---|
-| F6 | Allied movement |
+| F6 | Allied movement (current session only; ON each launch) |
 | F5 | Attack spacing |
 | F4 | Gentle settle |
 | F3 | Optional visual route preference |
+| F2 | Enemy cooperation (experimental; saved; defaults OFF) |
 
-Hotkey changes persist through the installed EEex INI API. Invalid values use
+F2–F5 changes persist through the installed EEex INI API, independently of game
+saves. F6 never writes an INI setting; legacy `Movement=0` is ignored at startup.
+Enemy cooperation defaults OFF only when no saved choice exists. Invalid values use
 documented defaults. A reported configuration-write failure affects persistence;
 the current session still uses the selected setting. A movement runtime error
 or clock-reset guard disables movement for the current session; review the log

@@ -2,12 +2,16 @@ local R=dofile('tests/fixtures/bg_redux_release_config.lua')
 local checks=0
 local function check(value)assert(value);checks=checks+1 end
 local defaults,warnings=R.read(function(path,section,key,default)
-    check(path=='.\\bg-redux-movement.ini' and section=='Movement');return default
+    check(path=='.\\bg-redux-movement.ini' and section=='Movement' and key~='Movement');return default
 end)
-check(defaults.Movement and defaults.AttackSpacing and defaults.GentleSettle and not defaults.RoutePreference and #warnings==0)
+check(defaults.Movement and not defaults.EnemyPrototype and defaults.AttackSpacing and defaults.GentleSettle and not defaults.RoutePreference and #warnings==0)
 local invalid,warnings=R.read(function()return 'maybe' end)
-check(invalid.Movement and invalid.AttackSpacing and invalid.GentleSettle and not invalid.RoutePreference and #warnings==4)
+check(invalid.Movement and not invalid.EnemyPrototype and invalid.AttackSpacing and invalid.GentleSettle and not invalid.RoutePreference and #warnings==4)
 local bootstrap=assert(io.open('tests/fixtures/bg_redux_release_bootstrap.lua')):read('*a')
+local legacy=R.read(function(_,_,key,default)
+    check(key~='Movement');return key=='EnemyPrototype' and '1' or default
+end)
+check(legacy.Movement and legacy.EnemyPrototype)
 for bits=0,15 do
     local values={}
     for i,entry in ipairs(R.keys)do values[entry[1]]=math.floor(bits/2^(i-1))%2==1 and '1' or '0' end
@@ -24,6 +28,7 @@ for bits=0,15 do
         env.log=function(line)env.logs[#env.logs+1]=line end
         env.movement_disable=function()env.pass_mode=false;env.disabled=true end
         env.MRIP_TogglePass=function()env.pass_mode=not env.pass_mode end
+        env.MRIP_ToggleEnemyPrototype=function()env.MRIP_EnemyPrototypeEnabled=not env.MRIP_EnemyPrototypeEnabled end
         env.MRIP_ToggleAttackSpacing=function()env.MRIP_AttackSpacingEnabled=not env.MRIP_AttackSpacingEnabled end
         env.MRIP_ToggleSettle=function()env.MRIP_SettleEnabled=not env.MRIP_SettleEnabled end
         env.MRIP_TogglePreference=function()if available then env.MRIP_PreferenceEnabled=not env.MRIP_PreferenceEnabled end end
@@ -31,18 +36,25 @@ for bits=0,15 do
         local chunk=assert(loadstring(bootstrap));setfenv(chunk,env);chunk();env.initialized()
         check(env.pass_mode==options.Movement and env.active==false)
         check(env.MRIP_AttackSpacingEnabled==options.AttackSpacing and env.MRIP_SettleEnabled==options.GentleSettle)
+        check(env.MRIP_EnemyPrototypeEnabled==options.EnemyPrototype)
         check(env.MRIP_PreferenceEnabled==(options.RoutePreference and available))
         check(not env.disabled)
         if available then
-            for _,entry in ipairs({{'MRIP_TogglePass','Movement'},{'MRIP_ToggleAttackSpacing','AttackSpacing'},
+            for _,entry in ipairs({{'MRIP_ToggleEnemyPrototype','EnemyPrototype'},{'MRIP_ToggleAttackSpacing','AttackSpacing'},
                 {'MRIP_ToggleSettle','GentleSettle'},{'MRIP_TogglePreference','RoutePreference'}})do
                 local before=options[entry[2]];env[entry[1]]()
                 check(options[entry[2]]==not before and env.writes[entry[2]]==(before and '0' or '1'))
                 env[entry[1]]()
             end
+            env.MRIP_ToggleEnemyPrototype()
+            local restarted=R.read(function(_,_,key,default)return env.writes[key] or default end)
+            check(restarted.EnemyPrototype==env.MRIP_EnemyPrototypeEnabled)
+            env.MRIP_TogglePass();check(not env.pass_mode and env.writes.Movement==nil)
+            check(restarted.Movement)
+            env.MRIP_TogglePass();check(env.pass_mode and env.writes.Movement==nil)
             env.EEex.SetINIString=function()error('fixture write failure')end
-            local before=env.pass_mode;env.MRIP_TogglePass()
-            check(env.pass_mode~=before and not env.disabled and env.logs[#env.logs]:find('CONFIG_WRITE_ERROR',1,true))
+            local before=env.MRIP_EnemyPrototypeEnabled;env.MRIP_ToggleEnemyPrototype()
+            check(env.MRIP_EnemyPrototypeEnabled~=before and not env.disabled and env.logs[#env.logs]:find('CONFIG_WRITE_ERROR',1,true))
         else
             env.MRIP_TogglePreference();check(env.writes.RoutePreference==nil)
         end
@@ -52,4 +64,4 @@ for bits=0,15 do
         env.initialized();check(env.disabled and not env.pass_mode and env.logs[#env.logs]:find('RELEASE_ERROR',1,true))
     end
 end
-print('Release configuration/bootstrap: '..checks..' assertions, all16 switch combinations, optional refusal, persistence failure and startup failure containment')
+print('Release configuration/bootstrap: '..checks..' assertions, all16 persistent switch combinations, session movement, optional refusal, persistence failure and startup failure containment')

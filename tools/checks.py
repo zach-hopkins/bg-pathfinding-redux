@@ -13,12 +13,12 @@ import sys
 ROOT = Path(__file__).resolve().parent.parent
 WORK = ROOT / 'tests/.work'
 RUNTIME = ROOT / 'bg-redux-movement/runtime/M_BGREDX.lua'
-PIN = '7134B27C1301A03E6DF5428F4ECED415990DD5A0F9A7375E870CD37225BFF4E4'
+PIN = '425DE882CC6DB2CAB76A889CFE4530826D7852D7EE636E43AB5B5F1F92BC7256'
 PROFILE_PINS = {
-    'bgee-steam-2.7.3.0': '6659F68F6EC2D94703DA63C8BEF07DFD5092D363A69BAC0A8DE4AF2422F020B8',
-    'bgee-steam-2.6.6.0': '1E3ECBC4B680DFE5B232E9B63F79B7CB7349027995C4146A7AE8EB37D6EBD7BE',
-    'bg2ee-2.6.6.0': '2ED3CA415EBB91BCF8CAD6341E397DB089A026AC07BEDD71E77E0F178BECF48E',
-    'bg2ee-steam-2.7.3.0': '1C00405AAB4BBC8E34959558474810EACA4C87B9B1EFD038308D68DD60BF5362',
+    'bgee-steam-2.7.3.0': '0129A8749A35FC1EA43F5AC5F0FBA04C95092BBA97686BDA81DC7CBC366A9F50',
+    'bgee-steam-2.6.6.0': 'CFA9137BF4C8C9CF4AF59C5F8A9A0689D0962C3AC2116B0814152CF25DDFE915',
+    'bg2ee-2.6.6.0': 'EBAA61E101976CCA767DA7274056D98B3A1FF4DF3AAE2C418E09C1BE6F4C7981',
+    'bg2ee-steam-2.7.3.0': '78C46651884A17EDBB2EC118ED14BB1DA63FB127CBA280F08371D6B1C1EBBD42',
 }
 
 def sha(path):
@@ -47,15 +47,17 @@ def check_integrity():
     assert 'The above copyright notice and this permission notice shall be included' in license_text
     config = configparser.ConfigParser()
     config.read(ROOT/'bg-redux-movement/defaults.ini', encoding='utf-8')
-    for key in ('Movement','AttackSpacing','GentleSettle','RoutePreference'):
+    for key in ('AttackSpacing','GentleSettle','RoutePreference'):
         assert config.get('Movement',key) == '1' and meta['defaults'][key]
+    assert config.get('Movement','EnemyPrototype')=='0' and not meta['defaults']['EnemyPrototype']
+    assert not config.has_option('Movement','Movement') and meta['defaults']['Movement']
     for profile in profiles:
         source=(ROOT/profile['runtime_path']).read_text(encoding='utf-8')
         for name in ('bg_redux_release_config.lua','bg_redux_release_bootstrap.lua','bg_redux_public_logging.lua','bg_redux_support_context.lua'):
             fragment = (ROOT/'tests/fixtures'/name).read_text(encoding='utf-8')
             assert source.count(fragment) == 1, 'Fixture no longer matches accepted profile: '+name
     tp2 = (ROOT/'bg-redux-movement/bg-redux-movement.tp2').read_text(encoding='utf-8')
-    for text in ('GAME_IS ~bgee sod bg2ee eet~','DESIGNATED 0','FILE_EXISTS ~EEex.dll~',
+    for text in ('GAME_IS ~bgee bg2ee eet~','DESIGNATED 0','FILE_EXISTS ~EEex.dll~',
                  'FILE_EXISTS ~InfinityLoader.exe~','NOT FILE_EXISTS ~bg-redux-movement.ini~',
                  'COPY + ~bg-redux-movement/defaults.ini~ ~bg-redux-movement.ini~',
                  'COPY ~bg-redux-movement/runtime/M_BGREDX.lua~ ~override/M_BGREDX.lua~',
@@ -70,7 +72,7 @@ def check_integrity():
     assert 'data/PATCH27.BIF' in tp2 and 'profile-hint.lua.in' in tp2
     for profile in profiles:
         assert 'FILE_MD5 ~%bg_redux_exe%~ ~'+profile['exe_md5']+'~' in tp2
-    print('Integrity: MIT license, dispatcher and all shipped profile hashes, metadata, four ON defaults, fixture linkage, executable hash warnings and native profile pins passed')
+    print('Integrity: MIT license, dispatcher/profile hashes, metadata, session movement, opt-in enemy defaults, fixture linkage and native pins passed')
     return meta
 
 def lua_check(script, lua=None, dll=None):
@@ -118,13 +120,16 @@ def main():
         if args.game and not dll and not args.lua:
             dll = args.game/'EEex/loader/LuaJIT/lua51.dll'
         lua_check(ROOT/'tests/configuration.lua', args.lua, dll)
-        ran.append('configuration: 326 assertions')
+        ran.append('configuration: persistent enemy choice, session movement and optional settings')
         lua_check(ROOT/'tests/public_logging.lua',args.lua,dll)
         ran.append('quiet public logging and explicit diagnostics')
         lua_check(ROOT/'tests/support_context.lua',args.lua,dll)
         ran.append('safe diagnostic context')
         lua_check(ROOT/'tests/overlap_escape.lua',args.lua,dll)
         lua_check(ROOT/'tests/overlap_snapshot.lua',args.lua,dll)
+        lua_check(ROOT/'tests/enemy_cooperation.lua',args.lua,dll)
+        lua_check(ROOT/'tests/enemy_reservations.lua',args.lua,dll)
+        ran.append('enemy cooperation, exclusive positions and bounded wait wrappers')
         ran.append('overlap escape policy and actual profile integration')
         lua_check(ROOT/'tests/profile_selection.lua',args.lua,dll)
         ran.append('profile selection and unsupported-build refusal')

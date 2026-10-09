@@ -272,8 +272,11 @@ if MRIP_TEST_RELEASE then
     MRIP_ToggleAttackSpacing();assert(release_values.AttackSpacing=='1')
     MRIP_ToggleSettle();assert(release_values.GentleSettle=='0')
     MRIP_ToggleSettle();assert(release_values.GentleSettle=='1')
-    MRIP_TogglePass();assert(release_values.Movement=='0' and memory[buffer+56]==0)
-    assert(#release_writes==8+(initially_preferred and 1 or 0),'startup and independent switch writes expected')
+    local writes_before_pass=#release_writes
+    MRIP_TogglePass();assert(memory[buffer+56]==0 and #release_writes==writes_before_pass)
+    MRIP_ToggleEnemyPrototype();assert(release_values.EnemyPrototype=='1')
+    MRIP_ToggleEnemyPrototype();assert(release_values.EnemyPrototype=='0')
+    assert(#release_writes==8+(initially_preferred and 1 or 0),'only optional switch writes expected')
 end
 if MRIP_TEST_PROTOTYPE then
     assert(MRIP_TransitEnabled==nil and MRIP_TransitNativeBody==nil,'shelved lane code remains active')

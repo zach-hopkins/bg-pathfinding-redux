@@ -47,15 +47,18 @@ remove that configuration file manually after uninstall if desired.
 
 ```ini
 [Movement]
-Movement=1
+EnemyPrototype=0
 AttackSpacing=1
 GentleSettle=1
 RoutePreference=1
 ```
 
-Edit with the game closed and restart, or use Left Ctrl + Left Shift + F3–F6.
-Invalid or missing values use the runtime's fallback defaults: movement, attack
-spacing, and settle ON; route preference OFF. The installer supplies the explicit
+Edit with the game closed and restart, or use Left Ctrl + Left Shift + F2–F5.
+F6 changes allied movement only for the current session; it starts ON at each
+launch and ignores legacy `Movement` INI values. Optional choices are stored in
+the game folder, independently of saves. Invalid or missing values use the
+runtime's fallback defaults: attack spacing and settle ON; enemy cooperation and
+route preference OFF. The installer supplies the explicit
 ON route-preference value for fresh installations.
 
 ## Reporting a problem

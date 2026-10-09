@@ -22,12 +22,17 @@ doors, neutral NPCs, and enemies retain their native blocking behavior.
   shared routes where a suitable native route alternative exists. Overlap remains
   allowed when space or route constraints require it.
 
-All four features are enabled by default on a fresh installation and can be
-toggled independently. Existing saved settings survive reinstall.
+Allied movement, attack positioning, gentle settle and visual route preference
+start ON on a fresh installation. Optional **enemy cooperation** defaults OFF:
+normal-sized enemies with matching hostile allegiance can pass through one
+another and prefer separate melee positions. They still block party members and
+neutral NPCs. Known current attack targets remain blockers. This uses a coarse
+allegiance grouping and is experimental, not a complete faction model.
+Existing optional settings survive reinstall.
 
 ## Compatibility
 
-**Version 0.1.6-preview** automatically selects one of four verified executable profiles.
+**Version 0.1.7-preview** automatically selects one of four verified executable profiles.
 
 | Setup | Status |
 | --- | --- |
@@ -85,8 +90,12 @@ Hold **Left Ctrl + Left Shift**, then press:
 | F5 | Attack spacing |
 | F4 | Gentle settle |
 | F3 | Visual route preference |
+| F2 | Enemy cooperation (experimental; default OFF) |
 
-Changes persist in `bg-redux-movement.ini`. You can also edit its four settings to
+F6 changes allied movement for the current session only; it starts ON at every
+launch, including when an old INI contains `Movement=0`. F2–F5 persist in
+`bg-redux-movement.ini` and apply across saves and later launches. Enemy cooperation
+defaults OFF when no saved choice exists. You can edit these optional settings to
 `1` (on) or `0` (off), then restart the game.
 
 Normal play logs only compact startup/status/error entries with the `[BG Redux]`
@@ -94,6 +103,8 @@ prefix. Automatic startup does not add toggle instructions to game chat.
 Detailed diagnostics are off by default. With the same modifiers, **F7** starts a
 20-second capture, **F8** takes a snapshot, and **F9** ends the capture early.
 Recording does not enable or disable movement.
+
+See [the quick hotkey guide](bg-redux-movement/QUICKSTART.md).
 
 ## Support reports
 

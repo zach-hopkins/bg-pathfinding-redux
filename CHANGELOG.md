@@ -1,5 +1,18 @@
 # Changelog
 
+## 0.1.7-preview — 2026-10-09
+
+- Ctrl+Shift+F2 toggles enemy pass-through and preferred melee attack positions together. Defaults OFF without a saved choice; requires movement and attack spacing ON.
+- Initially limited to personal-space-3 enemies with matching hostile allegiance values. Party, neutral NPCs, different enemy allegiance values, terrain and doors remain blockers.
+- Known current attack targets remain blocking even when allegiance values match. Matching allegiance is a coarse prototype approximation, not a complete faction model.
+- Reuse the existing movement-cost, private search-map and attack-position hooks. No additional native hooks or on-disk executable edits.
+- Bound enemy positioning to eight searches per 100 ms, 128 enumerated actors, 512 search nodes and a 2 ms search budget; retain native fallback when a budget is exceeded.
+- Preserve enemy attack reservations and failed-approach handoffs using actor and area identities. No enemy visual-route preference or idle separation added.
+- User accepted enemy doorway and open approach tests in the dedicated BG2EE 2.6.6.0 copy. Offline Lua/policy and actual executable-layout checks pass across all four profiles; enemy gameplay has not been retested on every profile.
+- Prototype 2: keep a verified reachable attack point when the enemy search reaches its budget; use native fallback when no verified point exists. Enemy private-map searches directly include omitted same-area portraits while retaining identity and occupancy proof.
+- Prototype 3: claim separated enemy attack endpoints, retain reservations through brief idle/SmallWait phases (600 ms), and refresh claims for standing attackers. When reachable frontage is reserved, wait up to 600 ms, then hand back to native behavior without restarting the same engagement's wait indefinitely. Allied attack compression remains permissive.
+- Saved settings: save the enemy cooperation choice across launches. Allied movement is session-only and starts ON each launch, ignoring legacy saved Movement values. Attack spacing, gentle settle and visual route preference remain persistent.
+
 ## 0.1.6-preview — 2026-10-09
 
 - Allow allied movers already inside a neutral or enemy's occupied search cells to escape outward.

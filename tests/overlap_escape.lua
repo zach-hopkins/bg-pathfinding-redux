@@ -16,13 +16,14 @@ local fragment=assert(io.open('tests/fixtures/bg_redux_overlap_escape.lua')):rea
 for _,profile in ipairs({'bg2ee-2.6.6.0','bg2ee-steam-2.7.3.0','bgee-steam-2.6.6.0','bgee-steam-2.7.3.0'}) do
     local source=assert(io.open('bg-redux-movement/runtime/profiles/'..profile..'.lua')):read('*a')
     check(source:find(fragment,1,true)~=nil,'escape fixture differs from shipped profile')
-    local escape=embedded(source,'overlap_escape=','local pass_policy')
+    overlap_test_enemy=embedded(source,'enemy_policy=','local overlap_escape')
+    local escape=embedded(source,'overlap_escape=','local pass_policy','local enemy_policy=overlap_test_enemy\n')
     overlap_test_escape=escape
     local pass=embedded(source,'pass_policy =','-- Embedded by build_mrip_prototype',
-        'local overlap_escape=overlap_test_escape\n')
+        'local enemy_policy=overlap_test_enemy\nlocal overlap_escape=overlap_test_escape\n')
     local snap=embedded(source,'snapshot_policy=','-- SearchThreadMain',
-        'local overlap_escape=overlap_test_escape\n')
-    local occupancy=embedded(source,'attack_policy=','local attack_reservations')
+        'local enemy_policy=overlap_test_enemy\nlocal overlap_escape=overlap_test_escape\n')
+    local occupancy=embedded(source,'attack_policy=','local attack_reservations','local enemy_policy=overlap_test_enemy\n')
     for _,ea in ipairs({128,200,255}) do for category=0,1 do
         local m=actor(1,2);m.painted=0;m.removed=1
         local b=actor(2,ea,nil,nil,category)
