@@ -1,11 +1,9 @@
 name: Publish checked preview
 
-# Publish this explicitly authorized 0.1.6 build; restore manual dispatch afterward.
+# Publish a future explicitly authorized build manually.
 # Existing release tags are never overwritten.
 on:
   workflow_dispatch:
-  push:
-    branches: [main]
 
 permissions:
   contents: read
@@ -16,7 +14,7 @@ concurrency:
 
 jobs:
   publish:
-    if: github.repository == 'zach-hopkins/bg-pathfinding-redux' && (github.event_name == 'workflow_dispatch' || contains(github.event.head_commit.message, '[publish-0.1.6]'))
+    if: github.repository == 'zach-hopkins/bg-pathfinding-redux'
     runs-on: ubuntu-latest
     timeout-minutes: 10
     permissions:
