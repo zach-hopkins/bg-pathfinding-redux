@@ -1,7 +1,7 @@
--- BG Pathfinding Redux 0.1.7-preview: prefer known builds, try variants with native checks.
+-- BG Pathfinding Redux 0.1.8-preview: prefer known builds, try variants with native checks.
 if MRIP_BaselineRevision or MRIP_DispatchLoaded then return end
 MRIP_DispatchLoaded=true
-MRIP_PackageVersion='0.1.7-preview'
+MRIP_PackageVersion='0.1.8-preview'
 local profiles={
     ['6A18D6DC:004F84B0:03524000:006DDF33']={id='bgee-steam-2.7.3.0',revision=56,path='bg-redux-movement/runtime/profiles/bgee-steam-2.7.3.0.lua'},
     ['609432DE:004F74D0:03522000:00000000']={id='bgee-steam-2.6.6.0',revision=55,path='bg-redux-movement/runtime/profiles/bgee-steam-2.6.6.0.lua'},

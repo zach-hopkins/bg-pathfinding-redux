@@ -1,6 +1,6 @@
 BACKUP ~bg-redux-movement/backup~
 AUTHOR ~Zach Hopkins / BG Pathfinding Redux~
-VERSION ~0.1.7-preview~
+VERSION ~0.1.8-preview~
 README ~bg-redux-movement/README.md~
 
 BEGIN ~BG Pathfinding Redux: allied movement and spacing (BGEE / SoD / BG2EE preview)~
@@ -26,7 +26,7 @@ BEGIN ~BG Pathfinding Redux: allied movement and spacing (BGEE / SoD / BG2EE pre
   END
   ACTION_IF (~%bg_redux_exe%~ STRING_EQUAL ~~) BEGIN
     PRINT ~WARNING: No standard game executable name found. Installation will continue; EEex must launch your executable. Runtime native checks remain active.~
-  END ELSE ACTION_IF NOT (FILE_MD5 ~%bg_redux_exe%~ ~6439dc555d7b5b91c2aa59bb0f32b271~ OR FILE_MD5 ~%bg_redux_exe%~ ~68d3b46a164931d2136c38aff397b4b1~ OR FILE_MD5 ~%bg_redux_exe%~ ~46c1b3bc2710af125525042d6d3c6eab~ OR FILE_MD5 ~%bg_redux_exe%~ ~eb8686062c6704ad9d95d4cda12487eb~) BEGIN
+  END ELSE ACTION_IF NOT (FILE_MD5 EVALUATE_BUFFER ~%bg_redux_exe%~ ~6439dc555d7b5b91c2aa59bb0f32b271~ OR FILE_MD5 EVALUATE_BUFFER ~%bg_redux_exe%~ ~68d3b46a164931d2136c38aff397b4b1~ OR FILE_MD5 EVALUATE_BUFFER ~%bg_redux_exe%~ ~46c1b3bc2710af125525042d6d3c6eab~ OR FILE_MD5 EVALUATE_BUFFER ~%bg_redux_exe%~ ~eb8686062c6704ad9d95d4cda12487eb~) BEGIN
     PRINT ~WARNING: Executable hash differs from the verified builds. Installation will continue. Runtime will try a likely profile with native signature/layout checks; this executable has not been verified.~
   END
   OUTER_SPRINT bg_redux_family ~bg2ee~

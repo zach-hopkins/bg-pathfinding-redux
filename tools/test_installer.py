@@ -50,7 +50,9 @@ def exercise(weidu, game, eet):
             assert result.returncode==0 and 'ERROR' not in result.stdout and 'FATAL' not in result.stdout, result.stdout+result.stderr
         else:
             assert 'SKIPPING:' in result.stdout and reason in result.stdout and 'SUCCESSFULLY INSTALLED' not in result.stdout,result.stdout+result.stderr
-    command('--force-install-list')
+        return result.stdout+result.stderr
+    clean_output=command('--force-install-list')
+    assert 'WARNING: Executable hash differs from the verified builds.' not in clean_output
     assert overlay.read_bytes()==runtime
     hint=lab/'bg-redux-movement/installed-profile.lua'
     assert ('2.7.3.0' if newer else '2.6.6.0') in hint.read_text(encoding='utf-8')
@@ -74,7 +76,8 @@ def exercise(weidu, game, eet):
     assert not overlay.exists() and config.read_bytes()==custom
     # A storefront filename, and then a custom name, are not installation gates.
     (lab/'Baldur.exe').rename(lab/'BaldurII.exe')
-    command('--force-install-list')
+    renamed_output=command('--force-install-list')
+    assert 'WARNING: Executable hash differs from the verified builds.' not in renamed_output
     assert overlay.read_bytes()==runtime and config.read_bytes()==custom and hint.exists()
     command('--force-uninstall-list')
     assert not hint.exists()
@@ -114,10 +117,9 @@ def exercise(weidu, game, eet):
     assert not overlay.exists() and config.read_bytes()==custom
     # A modified full-file hash warns and installs; runtime identity/site checks remain.
     with (lab/'Baldur.exe').open('ab') as file:file.write(b'future-build-fixture')
-    command('--force-install-list')
+    modified_output=command('--force-install-list')
     assert overlay.read_bytes()==runtime and config.read_bytes()==custom
-    output=(lab/'installer-output.txt').read_text(encoding='utf-8')
-    assert 'WARNING: Executable hash differs from the verified builds.' in output
+    assert 'WARNING: Executable hash differs from the verified builds.' in modified_output
     command('--force-uninstall-list')
     assert not overlay.exists() and config.read_bytes()==custom
     installed_lines=[line for line in (lab/'WeiDU.log').read_text().upper().splitlines() if not line.lstrip().startswith('//')]

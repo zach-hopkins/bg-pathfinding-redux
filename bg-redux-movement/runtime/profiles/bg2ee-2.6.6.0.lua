@@ -1,4 +1,4 @@
--- BG Redux Movement: guarded native profile; public package 0.1.7-preview.
+-- BG Redux Movement: guarded native profile; public package 0.1.8-preview.
 -- Core movement starts ON; optional switches persist; enemy cooperation defaults OFF.
 -- Generated from frozen52; persistent switches in bg-redux-movement.ini.
 if MRIP_BaselineRevision then return end
@@ -4626,7 +4626,7 @@ if install_ok then
         MRIP_StartupActivation=true
         local ok,err=pcall(function()
             if release_options.Movement and MRIP_TraceEnabled and not pass_mode then MRIP_TogglePass() end
-            log('RELEASE_READY version=0.1.7-preview movement='..tostring(pass_mode)
+            log('RELEASE_READY version=0.1.8-preview movement='..tostring(pass_mode)
                 ..' preference='..tostring(MRIP_PreferenceEnabled)..' spacing='..tostring(MRIP_AttackSpacingEnabled)
                 ..' settle='..tostring(MRIP_SettleEnabled)..' capture='..tostring(active))
         end)

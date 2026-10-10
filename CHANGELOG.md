@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.1.8-preview — 2026-10-09
+
+- Fix a false executable-hash warning: explicitly expand the selected filename before WeiDU computes its MD5.
+- Verified reference and renamed executables install without a mismatch warning; modified executables still warn and remain installable.
+- Movement behavior, all four engine profiles and saved options are unchanged.
+
 ## 0.1.7-preview — 2026-10-09
 
 - Ctrl+Shift+F2 toggles enemy pass-through and preferred melee attack positions together. Defaults OFF without a saved choice; requires movement and attack spacing ON.

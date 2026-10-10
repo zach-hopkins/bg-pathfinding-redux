@@ -1,10 +1,10 @@
 {
   "name": "bg-redux-movement",
-  "version": "0.1.7-preview",
+  "version": "0.1.8-preview",
   "revision": 56,
   "policy_revision": 52,
   "status": "user-confirmed-optional-enemy-cooperation",
-  "runtime_sha256": "425DE882CC6DB2CAB76A889CFE4530826D7852D7EE636E43AB5B5F1F92BC7256",
+  "runtime_sha256": "D00C638B06E01882B82925844E6FAA2E0549DAA8D340A80F53AAB8F9D42B3FFE",
   "tested_game": "Windows BG2EE 2.6.6.0; Steam BG2EE 2.7.3.0; Steam BGEE/SoD 2.6.6.0 and 2.7.3.0",
   "tested_eeex": "1.2.0 on BG2EE 2.6; 1.3.0 on BG2EE 2.7 and BGEE/SoD 2.6/2.7",
   "solo_only": true,
@@ -35,7 +35,7 @@
         "checksum": 0,
         "file_size": 7182336
       },
-      "runtime_sha256": "EBAA61E101976CCA767DA7274056D98B3A1FF4DF3AAE2C418E09C1BE6F4C7981",
+      "runtime_sha256": "0A53CD503D863D667368FA51898A68ECB6AA525A19B5D230B6DB5F70B8943E5A",
       "runtime_path": "bg-redux-movement/runtime/profiles/bg2ee-2.6.6.0.lua",
       "tested_eeex": "1.2.0",
       "accepted_date": "2026-10-06",
@@ -55,7 +55,7 @@
         "checksum": 7205089,
         "file_size": 7202696
       },
-      "runtime_sha256": "78C46651884A17EDBB2EC118ED14BB1DA63FB127CBA280F08371D6B1C1EBBD42",
+      "runtime_sha256": "7A73BA90AFE25D9F01A50CADEA8382EAF95B48ABD4582549396142D64CB92689",
       "runtime_path": "bg-redux-movement/runtime/profiles/bg2ee-steam-2.7.3.0.lua",
       "tested_eeex": "1.3.0",
       "accepted_date": "2026-10-07",
@@ -77,7 +77,7 @@
         "checksum": 0,
         "file_size": 7124992
       },
-      "runtime_sha256": "CFA9137BF4C8C9CF4AF59C5F8A9A0689D0962C3AC2116B0814152CF25DDFE915",
+      "runtime_sha256": "188D8E50A326806BFC7892D7B5B7C7D8D79A5B2E527C830662E6A56F08476E10",
       "runtime_path": "bg-redux-movement/runtime/profiles/bgee-steam-2.6.6.0.lua",
       "tested_eeex": "1.3.0",
       "gameplay_acceptance": "user-confirmed",
@@ -103,7 +103,7 @@
         "checksum": 7200563,
         "file_size": 7145352
       },
-      "runtime_sha256": "0129A8749A35FC1EA43F5AC5F0FBA04C95092BBA97686BDA81DC7CBC366A9F50",
+      "runtime_sha256": "0074020E172F8CDAA8A88D02167CEB9DCC143115DBF6F90AFD063C6E3076054E",
       "runtime_path": "bg-redux-movement/runtime/profiles/bgee-steam-2.7.3.0.lua",
       "tested_eeex": "1.3.0",
       "gameplay_acceptance": "user-confirmed",
@@ -140,5 +140,6 @@
     "RoutePreference": "INI; automatic slow guard is session only"
   },
   "enemy_gameplay_acceptance": "Dedicated Windows BG2EE 2.6.6.0 doorway and open approach runs accepted by user; other profiles checked offline",
-  "enemy_option": "Default OFF; saved game-folder EnemyPrototype setting; requires allied movement and attack spacing ON"
+  "enemy_option": "Default OFF; saved game-folder EnemyPrototype setting; requires allied movement and attack spacing ON",
+  "installer_hash_fix": "Explicit filename expansion for WeiDU FILE_MD5; verified clean/renamed files no longer warn"
 }

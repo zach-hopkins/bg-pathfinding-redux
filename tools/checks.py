@@ -13,12 +13,12 @@ import sys
 ROOT = Path(__file__).resolve().parent.parent
 WORK = ROOT / 'tests/.work'
 RUNTIME = ROOT / 'bg-redux-movement/runtime/M_BGREDX.lua'
-PIN = '425DE882CC6DB2CAB76A889CFE4530826D7852D7EE636E43AB5B5F1F92BC7256'
+PIN = 'D00C638B06E01882B82925844E6FAA2E0549DAA8D340A80F53AAB8F9D42B3FFE'
 PROFILE_PINS = {
-    'bgee-steam-2.7.3.0': '0129A8749A35FC1EA43F5AC5F0FBA04C95092BBA97686BDA81DC7CBC366A9F50',
-    'bgee-steam-2.6.6.0': 'CFA9137BF4C8C9CF4AF59C5F8A9A0689D0962C3AC2116B0814152CF25DDFE915',
-    'bg2ee-2.6.6.0': 'EBAA61E101976CCA767DA7274056D98B3A1FF4DF3AAE2C418E09C1BE6F4C7981',
-    'bg2ee-steam-2.7.3.0': '78C46651884A17EDBB2EC118ED14BB1DA63FB127CBA280F08371D6B1C1EBBD42',
+    'bgee-steam-2.7.3.0': '0074020E172F8CDAA8A88D02167CEB9DCC143115DBF6F90AFD063C6E3076054E',
+    'bgee-steam-2.6.6.0': '188D8E50A326806BFC7892D7B5B7C7D8D79A5B2E527C830662E6A56F08476E10',
+    'bg2ee-2.6.6.0': '0A53CD503D863D667368FA51898A68ECB6AA525A19B5D230B6DB5F70B8943E5A',
+    'bg2ee-steam-2.7.3.0': '7A73BA90AFE25D9F01A50CADEA8382EAF95B48ABD4582549396142D64CB92689',
 }
 
 def sha(path):
@@ -66,12 +66,12 @@ def check_integrity():
                  'COPY + ~mrdx-movement.ini~ ~bg-redux-movement.ini~'):
         assert text in tp2, text
     assert 'REQUIRE_PREDICATE (FILE_MD5' not in tp2
-    assert 'ACTION_IF NOT (FILE_MD5' in tp2 and 'WARNING: Executable hash differs' in tp2
+    assert 'ACTION_IF NOT (FILE_MD5 EVALUATE_BUFFER' in tp2 and 'WARNING: Executable hash differs' in tp2
     assert 'REQUIRE_PREDICATE (FILE_EXISTS ~Baldur.exe~)' not in tp2
     assert 'FILE_EXISTS ~BaldurII.exe~' in tp2 and 'FILE_EXISTS ~SiegeOfDragonspear.exe~' in tp2
     assert 'data/PATCH27.BIF' in tp2 and 'profile-hint.lua.in' in tp2
     for profile in profiles:
-        assert 'FILE_MD5 ~%bg_redux_exe%~ ~'+profile['exe_md5']+'~' in tp2
+        assert 'FILE_MD5 EVALUATE_BUFFER ~%bg_redux_exe%~ ~'+profile['exe_md5']+'~' in tp2
     print('Integrity: MIT license, dispatcher/profile hashes, metadata, session movement, opt-in enemy defaults, fixture linkage and native pins passed')
     return meta
 

@@ -32,7 +32,7 @@ Existing optional settings survive reinstall.
 
 ## Compatibility
 
-**Version 0.1.7-preview** automatically selects one of four verified executable profiles.
+**Version 0.1.8-preview** automatically selects one of four verified executable profiles.
 
 | Setup | Status |
 | --- | --- |
