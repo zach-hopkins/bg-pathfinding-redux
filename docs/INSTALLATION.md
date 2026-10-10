@@ -7,7 +7,7 @@ BG2EE 2.7.3.0 / EEex 1.3.0, and Steam BGEE/SoD 2.6.6.0 and 2.7.3.0 / EEex 1.3.0.
 For archived Steam/GOG SoD DLC, install DLC Merger before EEex.
 Install EEex and close both the game and its loader before changing files.
 EET is accepted by the installer, but its gameplay validation remains pending.
-This preview does not support multiplayer.
+This experimental build unlocks multiplayer for paired testing; see MULTIPLAYER-TEST.md.
 
 ## Install or upgrade
 

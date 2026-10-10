@@ -4,17 +4,19 @@ name: Publish checked preview
 # Existing release tags are never overwritten.
 on:
   workflow_dispatch:
+  push:
+    branches: [codex/multiplayer-experimental]
 
 permissions:
   contents: read
 
 concurrency:
-  group: publish-v0.1.8-preview
+  group: publish-v0.1.9-mp-experimental
   cancel-in-progress: false
 
 jobs:
   publish:
-    if: github.repository == 'zach-hopkins/bg-pathfinding-redux'
+    if: github.repository == 'zach-hopkins/bg-pathfinding-redux' && (github.event_name == 'workflow_dispatch' || contains(github.event.head_commit.message, '[publish-mp1]'))
     runs-on: ubuntu-latest
     timeout-minutes: 10
     permissions:
@@ -39,10 +41,10 @@ jobs:
           python - <<'PY'
           import hashlib, zipfile
           from pathlib import Path
-          archive = Path('dist/bg-redux-movement-0.1.8-preview-windows.zip')
+          archive = Path('dist/bg-redux-movement-0.1.9-mp-experimental-windows.zip')
           with zipfile.ZipFile(archive) as z:
               actual = hashlib.sha256(z.read('manifest.json')).hexdigest()
-              expected = '464ad43a88e1d2db0f6135f9a37d5ea41003a6a87b12f25a33109459f3efdf44'
+              expected = '66f4eabd517e7b0af76be59da8d79409c5efa91f5e8914c964fb0405fc0d4199'
               assert actual == expected, 'Package payload differs from the reviewed release'
           PY
       - name: Create a draft with both assets, then publish the prerelease
@@ -50,11 +52,11 @@ jobs:
           GH_TOKEN: ${{ github.token }}
           GH_REPO: ${{ github.repository }}
         run: |
-          gh release create v0.1.8-preview \
-            dist/bg-redux-movement-0.1.8-preview-windows.zip \
+          gh release create v0.1.9-mp-experimental \
+            dist/bg-redux-movement-0.1.9-mp-experimental-windows.zip \
             dist/SHA256SUMS.txt \
             --target "$GITHUB_SHA" \
-            --title "BG Pathfinding Redux 0.1.8-preview" \
+            --title "BG Pathfinding Redux 0.1.9-mp-experimental" \
             --notes-file docs/RELEASE_NOTES.md \
-            --prerelease --draft
-          gh release edit v0.1.8-preview --draft=false
+            --prerelease --draft --latest=false
+          gh release edit v0.1.9-mp-experimental --draft=false

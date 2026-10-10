@@ -28,7 +28,7 @@ Live world occupancy is not globally erased: enemies must still see the party.
 
 Current allied eligibility uses engine allegiance values 2 through 30, with
 additional native safety gates. Drawn circle color alone is not the policy.
-Normal-sized mover assumptions, ownership checks, network refusal, and lifetime
+Normal-sized mover assumptions, ownership checks, experimental network admission, and lifetime
 guards limit the supported scope.
 
 Lua handles policy and controller decisions through EEex. Injected x64 code

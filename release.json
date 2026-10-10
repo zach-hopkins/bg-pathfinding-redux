@@ -1,13 +1,13 @@
 {
   "name": "bg-redux-movement",
-  "version": "0.1.8-preview",
+  "version": "0.1.9-mp-experimental",
   "revision": 56,
   "policy_revision": 52,
-  "status": "user-confirmed-optional-enemy-cooperation",
-  "runtime_sha256": "D00C638B06E01882B82925844E6FAA2E0549DAA8D340A80F53AAB8F9D42B3FFE",
+  "status": "experimental-multiplayer-unlocked",
+  "runtime_sha256": "F31BEBE2C0B3C2802F7BC37F32B133513777B93FA789E2DFC54B946D5484A355",
   "tested_game": "Windows BG2EE 2.6.6.0; Steam BG2EE 2.7.3.0; Steam BGEE/SoD 2.6.6.0 and 2.7.3.0",
   "tested_eeex": "1.2.0 on BG2EE 2.6; 1.3.0 on BG2EE 2.7 and BGEE/SoD 2.6/2.7",
-  "solo_only": true,
+  "solo_only": false,
   "eet_gameplay_acceptance": "Neutral and enemy overlap escape confirmed in personal EET; broader campaign coverage incomplete",
   "defaults": {
     "Movement": true,
@@ -35,7 +35,7 @@
         "checksum": 0,
         "file_size": 7182336
       },
-      "runtime_sha256": "0A53CD503D863D667368FA51898A68ECB6AA525A19B5D230B6DB5F70B8943E5A",
+      "runtime_sha256": "DA0342288190C153071B4992A2DD873F138F511090A7CE17023962F5A6A10030",
       "runtime_path": "bg-redux-movement/runtime/profiles/bg2ee-2.6.6.0.lua",
       "tested_eeex": "1.2.0",
       "accepted_date": "2026-10-06",
@@ -55,7 +55,7 @@
         "checksum": 7205089,
         "file_size": 7202696
       },
-      "runtime_sha256": "7A73BA90AFE25D9F01A50CADEA8382EAF95B48ABD4582549396142D64CB92689",
+      "runtime_sha256": "8B6446E735EFED87E913D2DC283AC425AB157EEB2D8A0B113334BC3A8F5E3B34",
       "runtime_path": "bg-redux-movement/runtime/profiles/bg2ee-steam-2.7.3.0.lua",
       "tested_eeex": "1.3.0",
       "accepted_date": "2026-10-07",
@@ -77,7 +77,7 @@
         "checksum": 0,
         "file_size": 7124992
       },
-      "runtime_sha256": "188D8E50A326806BFC7892D7B5B7C7D8D79A5B2E527C830662E6A56F08476E10",
+      "runtime_sha256": "97C2717C4BE02F004893B04E141A1445F54C26BD671D0E6B1168662A88FC7862",
       "runtime_path": "bg-redux-movement/runtime/profiles/bgee-steam-2.6.6.0.lua",
       "tested_eeex": "1.3.0",
       "gameplay_acceptance": "user-confirmed",
@@ -103,7 +103,7 @@
         "checksum": 7200563,
         "file_size": 7145352
       },
-      "runtime_sha256": "0074020E172F8CDAA8A88D02167CEB9DCC143115DBF6F90AFD063C6E3076054E",
+      "runtime_sha256": "6AEE2C47A8F77162A4233B03FE7B877DD110FBAB1EA16339B4E5241A0916D93D",
       "runtime_path": "bg-redux-movement/runtime/profiles/bgee-steam-2.7.3.0.lua",
       "tested_eeex": "1.3.0",
       "gameplay_acceptance": "user-confirmed",
@@ -130,7 +130,7 @@
   "gog_gameplay_acceptance": "pending",
   "overlap_escape_revision": 1,
   "overlap_escape_acceptance": "User confirmed neutral and enemy overlap separation on 2026-10-09",
-  "development_status": "Unpublished default-off enemy cooperation prototype",
+  "development_status": "Experimental multiplayer test release",
   "enemy_prototype_revision": 4,
   "setting_persistence": {
     "Movement": "session only; ON each launch",
@@ -141,5 +141,7 @@
   },
   "enemy_gameplay_acceptance": "Dedicated Windows BG2EE 2.6.6.0 doorway and open approach runs accepted by user; other profiles checked offline",
   "enemy_option": "Default OFF; saved game-folder EnemyPrototype setting; requires allied movement and attack spacing ON",
-  "installer_hash_fix": "Explicit filename expansion for WeiDU FILE_MD5; verified clean/renamed files no longer warn"
+  "installer_hash_fix": "Explicit filename expansion for WeiDU FILE_MD5; verified clean/renamed files no longer warn",
+  "multiplayer_experimental": true,
+  "multiplayer_gameplay_acceptance": "pending two-peer test"
 }

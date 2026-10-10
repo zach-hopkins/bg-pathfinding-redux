@@ -1,4 +1,4 @@
-# BG Pathfinding Redux — 0.1.8 preview
+# BG Pathfinding Redux — 0.1.9-mp-experimental
 
 Allied creatures pass through one another while walls, closed doors, neutral
 NPCs and enemies retain their native blocking behavior. Party melee approach
@@ -19,7 +19,7 @@ See [QUICKSTART.md](QUICKSTART.md) for the hotkey guide.
 
 ## Tested setups and updates
 
-This 0.1.8-preview package automatically selects the supported native profile for:
+This 0.1.9-mp-experimental package automatically selects the supported native profile for:
 
 - Windows BG2EE 2.6.6.0 / EEex 1.2.0 (revision 53).
 - Windows Steam BG2EE 2.7.3.0 / EEex 1.3.0 (revision 54), confirmed working

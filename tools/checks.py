@@ -13,12 +13,12 @@ import sys
 ROOT = Path(__file__).resolve().parent.parent
 WORK = ROOT / 'tests/.work'
 RUNTIME = ROOT / 'bg-redux-movement/runtime/M_BGREDX.lua'
-PIN = 'D00C638B06E01882B82925844E6FAA2E0549DAA8D340A80F53AAB8F9D42B3FFE'
+PIN = 'F31BEBE2C0B3C2802F7BC37F32B133513777B93FA789E2DFC54B946D5484A355'
 PROFILE_PINS = {
-    'bgee-steam-2.7.3.0': '0074020E172F8CDAA8A88D02167CEB9DCC143115DBF6F90AFD063C6E3076054E',
-    'bgee-steam-2.6.6.0': '188D8E50A326806BFC7892D7B5B7C7D8D79A5B2E527C830662E6A56F08476E10',
-    'bg2ee-2.6.6.0': '0A53CD503D863D667368FA51898A68ECB6AA525A19B5D230B6DB5F70B8943E5A',
-    'bg2ee-steam-2.7.3.0': '7A73BA90AFE25D9F01A50CADEA8382EAF95B48ABD4582549396142D64CB92689',
+    'bgee-steam-2.7.3.0': '6AEE2C47A8F77162A4233B03FE7B877DD110FBAB1EA16339B4E5241A0916D93D',
+    'bgee-steam-2.6.6.0': '97C2717C4BE02F004893B04E141A1445F54C26BD671D0E6B1168662A88FC7862',
+    'bg2ee-2.6.6.0': 'DA0342288190C153071B4992A2DD873F138F511090A7CE17023962F5A6A10030',
+    'bg2ee-steam-2.7.3.0': '8B6446E735EFED87E913D2DC283AC425AB157EEB2D8A0B113334BC3A8F5E3B34',
 }
 
 def sha(path):
@@ -120,6 +120,8 @@ def main():
         if args.game and not dll and not args.lua:
             dll = args.game/'EEex/loader/LuaJIT/lua51.dll'
         lua_check(ROOT/'tests/configuration.lua', args.lua, dll)
+        lua_check(ROOT/'tests/multiplayer_admission.lua', args.lua, dll)
+        ran.append('experimental network admission with world and private-map safety checks retained')
         ran.append('configuration: persistent enemy choice, session movement and optional settings')
         lua_check(ROOT/'tests/public_logging.lua',args.lua,dll)
         ran.append('quiet public logging and explicit diagnostics')

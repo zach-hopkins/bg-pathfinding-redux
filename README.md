@@ -1,4 +1,8 @@
-# BG Pathfinding Redux
+# BG Pathfinding Redux — multiplayer experiment
+
+This separate test build removes multiplayer refusals. Install the same build on
+both peers and match settings. No settings synchronization or new movement
+authority handling is added. Follow [MULTIPLAYER-TEST.md](bg-redux-movement/MULTIPLAYER-TEST.md).
 
 **Party members should be able to move through their own party.**
 
@@ -32,7 +36,7 @@ Existing optional settings survive reinstall.
 
 ## Compatibility
 
-**Version 0.1.8-preview** automatically selects one of four verified executable profiles.
+**Version 0.1.9-mp-experimental** automatically selects one of four verified executable profiles.
 
 | Setup | Status |
 | --- | --- |
@@ -42,7 +46,7 @@ Existing optional settings survive reinstall.
 | Windows Steam BGEE and SoD 2.6.6.0 with EEex 1.3.0, single player | Revision 55 confirmed working October 7, 2026 |
 | Windows Steam BGEE and SoD 2.7.3.0 with EEex 1.3.0, single player | Revision 56 confirmed working October 7, 2026 |
 | Other executable versions or IWDEE | Not validated |
-| Multiplayer | Not supported by this preview; several paths deliberately decline network work |
+| Multiplayer | Unlocked in this experimental build; paired gameplay testing pending |
 | Linux through Wine/Proton; macOS through Wine/CrossOver | Potential Windows-executable routes; this mod has not been tested there |
 | Native Linux or macOS game executables | Not supported by these Windows x64 hooks |
 

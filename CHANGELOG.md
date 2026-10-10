@@ -1,5 +1,12 @@
 # Changelog
 
+## 0.1.9-mp-experimental — 2026-10-09
+
+- Separate experimental release: remove network-session refusals from private path-search correction, gentle settle and visual route preference in all four profiles.
+- Keep native signatures, private-map ownership checks and world/action eligibility checks.
+- No settings synchronization, authority routing or paired gameplay validation added.
+- Regular 0.1.8-preview release is unchanged.
+
 ## 0.1.8-preview — 2026-10-09
 
 - Fix a false executable-hash warning: explicitly expand the selected filename before WeiDU computes its MD5.

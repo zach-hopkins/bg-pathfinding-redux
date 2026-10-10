@@ -113,8 +113,12 @@ check(not MRIP_SearchSnapshot(f.request,f.private) and #f.writes==0,'neutral mov
 f=fixture();f.ally.m_typeAI.m_EnemyAlly=128
 MRIP_SearchSnapshot(f.request,f.private)
 check(f.mem[f.private+10*20+10]==16,'neutral body cleared from search snapshot')
+f=fixture();f.mem[0xB00000+0x2C9]=1
+check(MRIP_SearchSnapshot(f.request,f.private) and #f.writes==18,'network session private snapshot not corrected')
+f=fixture();f.mem[0xB00000+0x2C9]=1;f.mem[f.mp+0x47F0]=0
+check(not MRIP_SearchSnapshot(f.request,f.private) and #f.writes==0,'network session bypassed request ownership')
 for _,kind in ipairs({'off','cancelled','request-type','owner','request-area','snapshot-pointer','alias-live','dimensions',
-    'enemy-mover','mover-size','network','missing-mover','missing-party','duplicate','foreign-area','paint-phase','error'}) do
+    'enemy-mover','mover-size','missing-mover','missing-party','duplicate','foreign-area','paint-phase','error'}) do
     f=fixture()
     if kind=='off' then snapshot_test.on=false
     elseif kind=='cancelled' then f.mem[f.request]=4
@@ -126,7 +130,6 @@ for _,kind in ipairs({'off','cancelled','request-type','owner','request-area','s
     elseif kind=='dimensions' then f.mem[f.ap+0xA60+0x138]=321
     elseif kind=='enemy-mover' then f.mover.m_typeAI.m_EnemyAlly=255
     elseif kind=='mover-size' then f.mover.personal=5
-    elseif kind=='network' then f.mem[0xB00000+0x2C9]=1
     elseif kind=='missing-mover' then table.remove(f.sprites,1)
     elseif kind=='missing-party' then EEex_Sprite_GetInPortrait=function(slot) return slot==5 and {m_id=99,ptr=99,m_pArea=f.area} or f.sprites[slot+1] end
     elseif kind=='duplicate' then f.sprites[#f.sprites+1]=f.ally

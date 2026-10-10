@@ -1,27 +1,27 @@
-# BG Pathfinding Redux 0.1.8-preview
+# BG Pathfinding Redux — experimental multiplayer
 
-Fixes a false executable-hash warning during installation. The installer now
-expands the selected filename before checking its MD5. An unchanged, verified
-game executable no longer gets reported as unfamiliar.
+Separate test release based on 0.1.8-preview. Removes explicit network-session
+refusals from private path-search correction, gentle settle and visual route
+preference. Both peers must install this same build with compatible EEex and
+matching options. The regular release is unchanged.
 
-Modified executables still warn and remain installable. Movement behavior,
-optional enemy cooperation, hotkeys and all four 2.6/2.7 engine profiles are unchanged.
+This unlocks existing movement behavior; it does not synchronize settings,
+route reservations or automatic spacing orders between peers. Paired gameplay
+testing is pending. Native signature, bitmap ownership and action checks remain.
 
-## Install or upgrade
+Close the game, extract the Windows ZIP into each game folder, and reinstall
+component 0 with `setup-bg-redux-movement.exe`. Launch through EEex. Existing
+settings persist, so match F2–F5 on both peers before testing.
 
-Close the game, extract `bg-redux-movement-0.1.8-preview-windows.zip` into the
-game folder, and reinstall component 0 using `setup-bg-redux-movement.exe`.
-Existing optional settings are preserved. Launch through EEex.
+Start with F2/F3/F4/F5 OFF and F6 ON. Test host-controlled and client-controlled
+characters crossing each other and doorways; watch both screens. Then enable
+attack spacing, gentle settle, route preference and enemy cooperation separately.
+Record matching trials with Ctrl+Shift+F7 on both peers, then send both support
+logs from `Collect BG Redux Support.cmd` with who controlled each character.
 
-If 0.1.7 already works, its false warning did not damage your installation.
+The ZIP includes `bg-redux-movement/MULTIPLAYER-TEST.md` and `QUICKSTART.md`.
+Offline tests cover network admission, private-map corrections and preserved
+safety checks. Offline fixtures do not establish multiplayer synchronization.
+No launch tests were performed.
 
-## Verification
-
-Real WeiDU tests using copied reference and personal EET resources confirm that
-clean and renamed executables do not warn, while modified executables warn and
-install successfully. Install/reinstall/uninstall and settings preservation pass.
-Offline runtime checks remain in place; no game was launched by the agent.
-
-The hotkey guide is included as `bg-redux-movement/QUICKSTART.md`.
-For support, record with Ctrl+Shift+F7, reproduce, run `Collect BG Redux Support.cmd`
-and send `bg-redux-support.log` with steps.
+To return to the normal build, reinstall 0.1.8-preview on both peers.

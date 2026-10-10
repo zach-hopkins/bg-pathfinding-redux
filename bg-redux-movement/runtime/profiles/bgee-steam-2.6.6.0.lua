@@ -1,5 +1,5 @@
 -- BG1EE Steam 2.6.6.0 and SoD: user-confirmed compatibility, 2026-10-07.
--- BG Redux Movement: guarded native profile; public package 0.1.8-preview.
+-- BG Redux Movement: guarded native profile; public package 0.1.9-mp-experimental.
 -- Core movement starts ON; optional switches persist; enemy cooperation defaults OFF.
 -- Generated from frozen52; persistent switches in bg-redux-movement.ini.
 if MRIP_BaselineRevision then return end
@@ -2094,10 +2094,10 @@ local function settle_world()
     local mode=game.m_gameSave.m_inputMode
     if EEex_BAnd(mode-0x1016E,0xFFFDFFFF)==0 or EEex_BAnd(mode,0x801)==0 then return false end
     if Infinity_IsMenuOnStack('WORLD_DIALOG') then return false end
-    -- The existing project network adapter uses CChitin +2C9 (session open).
-    -- Until ownership/synchronization is designed, no automatic MP orders.
+    -- Experimental multiplayer build: permit network sessions.
+    -- Peer settings and action authority are not synchronized by this mod.
     local chitin=EEex_ReadPtr(base+0x665098)
-    return chitin~=0 and EEex_ReadU8(chitin+0x2C9)==0
+    return chitin~=0
 end
 local function settle_safe(sprite,a)
     return attack_policy.ally(a.ea) and a.personal==3 and a.painted==1 and a.removed==0
@@ -2572,7 +2572,7 @@ local function snapshot_select(request,private)
     if not request or request==0 or not private or private==0 then return false,'pointer' end
     if EEex_ReadU8(request)~=1 or EEex_Read32(request+4)~=0 then return false,'request-kind' end
     local chitin=EEex_ReadPtr(base+0x665098)
-    if chitin==0 or EEex_ReadU8(chitin+0x2C9)~=0 then return false,'network-session' end
+    if chitin==0 then return false,'missing-chitin' end
     local mover=EEex_GameObject_Get(EEex_Read32(request+0x38))
     if not mover or not EEex_GameObject_IsSprite(mover,true) or not mover.m_pArea then return false,'mover' end
     mover=EEex_CastUD(mover,'CGameSprite')
@@ -3696,7 +3696,7 @@ local function preference_select(sprite,path,count,output,caller,message,trace)
         return preference_keep(sprite,'eligibility')
     end
     local chitin=EEex_ReadPtr(base+0x665098)
-    if chitin==0 or EEex_ReadU8(chitin+0x2C9)~=0 then return preference_keep(sprite,'network-session') end
+    if chitin==0 then return preference_keep(sprite,'missing-chitin') end
     if not path or path==0 or not output or output==0 or count<2 or count>256 then return 0 end
     trace.enabled=true
     local direct=caller==base+0x37595E+5 or caller==base+0x375D87+5
@@ -4627,7 +4627,7 @@ if install_ok then
         MRIP_StartupActivation=true
         local ok,err=pcall(function()
             if release_options.Movement and MRIP_TraceEnabled and not pass_mode then MRIP_TogglePass() end
-            log('RELEASE_READY version=0.1.8-preview movement='..tostring(pass_mode)
+            log('RELEASE_READY version=0.1.9-mp-experimental movement='..tostring(pass_mode)
                 ..' preference='..tostring(MRIP_PreferenceEnabled)..' spacing='..tostring(MRIP_AttackSpacingEnabled)
                 ..' settle='..tostring(MRIP_SettleEnabled)..' capture='..tostring(active))
         end)
