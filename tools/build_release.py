@@ -14,6 +14,7 @@ def main():
     parser=argparse.ArgumentParser(description=__doc__)
     parser.add_argument('--vendor-dir',type=Path,required=True,
                         help='Directory containing official weidu.exe, tagged source ZIP, and COPYING')
+    parser.add_argument('--dev',action='store_true',help='Build dev controls: shared F1-F6 plus F7 and F9')
     args=parser.parse_args()
     meta=check_integrity()
     pin=json.loads((ROOT/'tools/weidu-provenance.json').read_text(encoding='utf-8'))
@@ -48,11 +49,19 @@ def main():
     files['bg-redux-movement/profiles.json']=(ROOT/'profiles.json').read_bytes()
     for profile in meta['profiles']:
         files[profile['runtime_path']]=(ROOT/profile['runtime_path']).read_bytes()
+    if args.dev:
+        selector='bg-redux-movement/runtime/M_BGREDX.lua'
+        assert files[selector].count(b'MRIP_DevelopmentBuild=false')==1
+        files[selector]=files[selector].replace(b'MRIP_DevelopmentBuild=false',b'MRIP_DevelopmentBuild=true')
+        meta=dict(meta,build_mode='dev',runtime_sha256=digest(files[selector]))
+        files['bg-redux-movement/release.json']=(json.dumps(meta,indent=2)+'\n').encode('utf-8')
+        files['bg-redux-movement/DEV-HOTKEYS.md']=(ROOT/'docs/DEV-HOTKEYS.md').read_bytes()
+        files['bg-redux-movement/QUICKSTART.md']+=b'\nDev controls: F7 toggles visual preference for this session; F9 ends recording early. F8 is unused.\n'
     manifest=dict(meta,files={name:digest(data) for name,data in sorted(files.items())})
     files['manifest.json']=(json.dumps(manifest,indent=2)+'\n').encode('utf-8')
     output=ROOT/'dist'
     output.mkdir(exist_ok=True)
-    name=meta['name']+'-'+meta['version']+'-windows.zip'
+    name=meta['name']+'-'+meta['version']+('-dev' if args.dev else '')+'-windows.zip'
     archive=output/name
     with zipfile.ZipFile(archive,'w',compression=zipfile.ZIP_DEFLATED,compresslevel=9) as z:
         for path,data in sorted(files.items()):
@@ -68,7 +77,7 @@ def main():
             assert z.read(path)==data and not path.startswith('/') and '..' not in Path(path).parts
     archive_hash=digest(archive.read_bytes())
     (output/'SHA256SUMS.txt').write_text(archive_hash+'  '+name+'\n',encoding='utf-8')
-    result=dict(archive=name,sha256=archive_hash,files=len(files),
+    result=dict(archive=name,sha256=archive_hash,files=len(files),build_mode=meta['build_mode'],
                 runtime_sha256=meta['runtime_sha256'],game_launched=False,
                 project_license=meta['project_license'],published=False)
     (output/'build-report.json').write_text(json.dumps(result,indent=2)+'\n',encoding='utf-8')

@@ -134,7 +134,7 @@ EEex_Write32=function(address,value) memory[address]=value end
 EEex_ReadPtr=function(address)
     return (memory[address] or 0)+(memory[address+4] or 0)*0x100000000
 end
-EEex_Malloc=function(size) assert(size==64+4096*128 or MRIP_TEST_PROTOTYPE and (size==48 or size==24 or MRIP_TEST_PREFERENCE and size==64)); return size==64 and buffer+0x300000 or size==24 and buffer+0x200000 or size==48 and buffer+0x100000 or buffer end
+EEex_Malloc=function(size) assert(size==64+4096*128 or MRIP_TEST_PROTOTYPE and (size==4 or size==48 or size==24 or MRIP_TEST_PREFERENCE and size==64)); return size==4 and buffer+0x400000 or size==64 and buffer+0x300000 or size==24 and buffer+0x200000 or size==48 and buffer+0x100000 or buffer end
 EEex_Memcpy=function() end
 EEex_Memset=function() end
 EEex_JITNear=function() return exe_base+0x800000 end
@@ -254,29 +254,35 @@ assert(MRIP_TraceEnabled and MRIP_BaselineRevision==expected_revision,table.conc
 assert(table.concat(output,"\n"):find("LOADED revision="..expected_revision.." trace_enabled=true",1,true),'logged revision must match loaded revision')
 assert(#hooks==expected_hooks)
 if MRIP_TEST_RELEASE then
-    local initially_preferred=release_values.RoutePreference=='1'
     assert(release_initialized and memory[buffer+56]==0 and memory[buffer]==0)
     local startup_feedback=#feedback
     release_initialized()
-    assert(#feedback==startup_feedback,'automatic startup must not print prototype instructions to game chat')
+    assert(#feedback==startup_feedback,'automatic startup must be quiet')
     assert(memory[buffer+56]==1 and memory[buffer]==0,'automatic startup must not record')
-    assert(MRIP_AttackSpacingEnabled and MRIP_SettleEnabled and MRIP_PreferenceEnabled==initially_preferred)
-    if initially_preferred then
-        assert(memory[buffer+0x300000]==1,'configured startup must arm optional native preference')
-        MRIP_TogglePreference();assert(release_values.RoutePreference=='0')
-    end
+    assert(MRIP_AttackSpacingEnabled and MRIP_SettleEnabled and MRIP_PreferenceEnabled,'visual preference must start ON even with legacy OFF choice')
+    assert(memory[buffer+0x300000]==1)
+    local before=#release_writes
+    modifiers=true;key_listener('F7')
+    assert(MRIP_PreferenceEnabled==not MRIP_TEST_DEVELOPMENT,'F7 release/dev isolation')
+    if MRIP_TEST_DEVELOPMENT then key_listener('F7');assert(MRIP_PreferenceEnabled) end
+    key_listener('F8');assert(memory[buffer]==0 and #release_writes==before,'removed snapshot key changed state')
+    modifiers=false
     assert(table.concat(output,'\n'):find('RELEASE_READY',1,true))
-    MRIP_TogglePreference();assert(release_values.RoutePreference=='1')
-    MRIP_TogglePreference();assert(release_values.RoutePreference=='0')
     MRIP_ToggleAttackSpacing();assert(release_values.AttackSpacing=='0')
     MRIP_ToggleAttackSpacing();assert(release_values.AttackSpacing=='1')
     MRIP_ToggleSettle();assert(release_values.GentleSettle=='0')
     MRIP_ToggleSettle();assert(release_values.GentleSettle=='1')
+    assert(not MRIP_OutOfCombatOnly)
+    local saved_type=CAIObjectType
+    CAIObjectType={ANYONE={}}
+    EEex_EngineGlobal_CBaldurChitin={m_pObjectGame={m_gameAreas={get=function()return {ptr=123,m_nBattleSongCounter=1,m_nDamageCounter=0,forAllOfTypeInRange=function()end}end}}}
+    modifiers=true;key_listener('F2');assert(MRIP_OutOfCombatOnly and release_values.OutOfCombatOnly=='1' and memory[buffer+0x400000]==1)
+    key_listener('F2');assert(not MRIP_OutOfCombatOnly and release_values.OutOfCombatOnly=='0' and memory[buffer+0x400000]==0);modifiers=false;EEex_EngineGlobal_CBaldurChitin=nil;CAIObjectType=saved_type
     local writes_before_pass=#release_writes
     MRIP_TogglePass();assert(memory[buffer+56]==0 and #release_writes==writes_before_pass)
     MRIP_ToggleEnemyPrototype();assert(release_values.EnemyPrototype=='1')
     MRIP_ToggleEnemyPrototype();assert(release_values.EnemyPrototype=='0')
-    assert(#release_writes==8+(initially_preferred and 1 or 0),'only optional switch writes expected')
+    assert(#release_writes==8,'only optional switch writes expected')
 end
 if MRIP_TEST_PROTOTYPE then
     assert(MRIP_TransitEnabled==nil and MRIP_TransitNativeBody==nil,'shelved lane code remains active')
@@ -285,10 +291,19 @@ if MRIP_TEST_PROTOTYPE then
     end
 end
 assert(table.concat(output,"\n"):find("HOOKS_READY",1,true),'native hooks ready after profile selection')
-key_listener("F7")
+local function test_stop_capture()
+    local before=memory[buffer]
+    key_listener('F9')
+    if MRIP_TEST_DEVELOPMENT then assert(memory[buffer]==0,'dev F9 must stop')
+    else
+        assert(memory[buffer]==before,'release F9 must do nothing')
+        MRIP_Stop('fixture-cleanup')
+    end
+end
+key_listener("F6")
 assert(memory[buffer]==0,"capture requires modifiers")
 if MRIP_TEST_PREFERENCE then
-    key_listener('F3');assert(not MRIP_PreferenceEnabled,'F3 requires modifiers')
+    key_listener('F7');assert(MRIP_PreferenceEnabled,'F7 requires modifiers')
 end
 if MRIP_TEST_PROTOTYPE then
     key_listener('F5')
@@ -296,10 +311,10 @@ if MRIP_TEST_PROTOTYPE then
 end
 modifiers=true
 if MRIP_TEST_PREFERENCE then
-    key_listener('F3');assert(MRIP_PreferenceEnabled and memory[buffer+0x300000]==1)
-    key_listener('F3');assert(not MRIP_PreferenceEnabled and memory[buffer+0x300000]==0)
+    key_listener('F7');assert(MRIP_PreferenceEnabled==not MRIP_TEST_DEVELOPMENT)
+    key_listener('F7');assert(MRIP_PreferenceEnabled and memory[buffer+0x300000]==1)
 end
-key_listener("F7")
+key_listener("F6")
 assert(memory[buffer]==1 and memory[buffer+32]==42 and memory[buffer+36]==43)
 if MRIP_TEST_PROTOTYPE then
     sprites[1].getState=function() return 0x8000 end
@@ -384,7 +399,7 @@ end
 action_listener(sprites[1],sprites[1].m_curAction)
 assert(output[#output]:find("ACTION_START",1,true))
 clock_ms=10300
-key_listener("F9")
+test_stop_capture()
 assert(memory[buffer]==0)
 count=#output
 action_listener(sprites[1],sprites[1].m_curAction)
@@ -402,41 +417,41 @@ assert(memory[buffer]==0 and table.concat(output,'\n'):find("END reason=clock-re
 if MRIP_TEST_PROTOTYPE then
     assert(memory[buffer+56]==0,"prototype defaults OFF")
     clock_ms=32000
+    key_listener("F1")
+    assert(memory[buffer+56]==1 and memory[buffer]==0,"F1 enables movement without recording")
     key_listener("F6")
-    assert(memory[buffer+56]==1 and memory[buffer]==0,"F6 enables movement without recording")
-    key_listener("F7")
     assert(memory[buffer+56]==1,"armed capture enables the experiment")
     clock_ms=52000
     MRIP_Tick()
     assert(memory[buffer+56]==1 and memory[buffer]==0,"timeout stops recording only")
     clock_ms=53000
-    key_listener("F7")
-    assert(memory[buffer+56]==1)
     key_listener("F6")
+    assert(memory[buffer+56]==1)
+    key_listener("F1")
     assert(memory[buffer]==0 and memory[buffer+56]==0,"mode change ends capture")
-    key_listener("F7")
+    key_listener("F6")
     assert(memory[buffer+56]==0,"OFF capture preserves normal behavior")
-    key_listener("F9")
+    test_stop_capture()
+    key_listener('F1')
     key_listener('F6')
-    key_listener('F7')
     assert(memory[buffer+56]==1 and MRIP_AttackSpacingEnabled)
     key_listener('F5')
     assert(memory[buffer]==0 and memory[buffer+56]==1 and not MRIP_AttackSpacingEnabled,'spacing mode change keeps continuous noclip')
-    key_listener('F7')
+    key_listener('F6')
     assert(memory[buffer+56]==1 and not MRIP_AttackSpacingEnabled,'spacing OFF must preserve armed noclip')
     assert(table.concat(output,'\n'):find('ATTACK_RUN enabled=false',1,true))
-    key_listener('F9')
+    test_stop_capture()
     key_listener('F5')
-    key_listener('F7')
+    key_listener('F6')
     assert(memory[buffer+56]==1 and MRIP_AttackSpacingEnabled,'spacing ON restores only its own mode')
-    key_listener('F9')
+    test_stop_capture()
     assert(memory[buffer]==0 and memory[buffer+56]==1,'F9 keeps movement ON')
     key_listener('F4')
     assert(not MRIP_SettleEnabled and memory[buffer+56]==1,'F4 changed traversal')
     key_listener('F4')
     assert(MRIP_SettleEnabled and memory[buffer+56]==1,'F4 did not restore settlement')
-    key_listener('F6')
-    assert(memory[buffer+56]==0,'F6 switches movement OFF')
+    key_listener('F1')
+    assert(memory[buffer+56]==0,'F1 switches movement OFF')
 end
 count=#hooks
 dofile(source_path)
@@ -502,7 +517,7 @@ if MRIP_TEST_PROTOTYPE then
             hooks={};MRIP_BaselineRevision=nil;MRIP_TraceEnabled=nil;corrupt_site=site
             dofile(source_path)
             assert(MRIP_TraceEnabled and #hooks==24 and not MRIP_PreferenceEnabled,'optional mismatch must preserve base movement')
-            key_listener('F3');assert(not MRIP_PreferenceEnabled,'unavailable optional feature must refuse enable')
+            key_listener('F7');assert(not MRIP_PreferenceEnabled,'unavailable optional feature must refuse enable')
         end
     end
     hooks={};MRIP_BaselineRevision=nil;MRIP_TraceEnabled=nil;corrupt_site=nil

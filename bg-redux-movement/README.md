@@ -1,4 +1,4 @@
-# BG Pathfinding Redux — 0.1.8 preview
+# BG Pathfinding Redux — 0.1.10 preview
 
 Allied creatures pass through one another while walls, closed doors, neutral
 NPCs and enemies retain their native blocking behavior. Party melee approach
@@ -9,7 +9,7 @@ Allied movers already overlapping a neutral or enemy can walk outward to escape.
 Normal blocking resumes on separation. Escape follows the Movement setting; it
 does not allow entering blockers from outside or crossing walls/closed doors.
 
-Optional enemy cooperation (Ctrl+Shift+F2, default OFF) lets normal-sized enemies
+Optional enemy cooperation (Ctrl+Shift+F3, default OFF) lets normal-sized enemies
 with matching hostile allegiance pass through each other and prefer separate melee
 positions. They continue to block the party and neutral NPCs. Known current attack
 targets remain blocking; allegiance grouping is experimental, not a complete
@@ -19,7 +19,7 @@ See [QUICKSTART.md](QUICKSTART.md) for the hotkey guide.
 
 ## Tested setups and updates
 
-This 0.1.8-preview package automatically selects the supported native profile for:
+This 0.1.10-preview package automatically selects the supported native profile for:
 
 - Windows BG2EE 2.6.6.0 / EEex 1.2.0 (revision 53).
 - Windows Steam BG2EE 2.7.3.0 / EEex 1.3.0 (revision 54), confirmed working
@@ -66,43 +66,33 @@ uninstall if desired.
 
 ## Settings and controls
 
-Movement starts automatically. Attack spacing, gentle settle and visual route
-preference default ON in fresh installations. The optional preference offers modest
-visual spacing in some routes and retains native movement whenever its guards
-reject a candidate. It does not guarantee lasting lanes or eliminate overlap.
+Hold Left Ctrl + Left Shift:
 
-Reinstall preserves existing preferences, including a saved OFF choice. F3 can
-switch visual preference OFF or ON, and that choice persists between launches.
-The installer creates the supplied defaults file only when no settings file exists.
+| Key | Function | Default |
+| --- | --- | --- |
+| F1 | Core allied noclip | ON each launch; session-only |
+| F2 | Allied noclip only outside combat | OFF; saved |
+| F3 | Enemy cooperation | OFF; saved |
+| F4 | Gentle settle | ON; saved |
+| F5 | Attack positioning | ON; saved |
+| F6 | Start a 20-second diagnostic recording | Automatically ends |
 
-Edit `bg-redux-movement.ini` with1/0 and restart, or toggle during play:
+F2–F5 persist through the installed EEex INI API, independently of saves.
+F1 never writes an INI setting; legacy Movement values are ignored at startup.
+Enemy cooperation requires F1 and F5 ON. Existing feature choices survive reinstall.
 
-| Left Ctrl+Left Shift+key | Setting |
-|---|---|
-| F6 | Allied movement (current session only; ON each launch) |
-| F5 | Attack spacing |
-| F4 | Gentle settle |
-| F3 | Optional visual route preference |
-| F2 | Enemy cooperation (experimental; saved; defaults OFF) |
+Visual route preference stays enabled in release builds and ignores a legacy
+saved OFF choice. It offers modest spacing and keeps native movement whenever
+its guards reject a candidate. Slow calculations retain the native route for
+that request without disabling preference for later movement.
 
-F2–F5 changes persist through the installed EEex INI API, independently of game
-saves. F6 never writes an INI setting; legacy `Movement=0` is ignored at startup.
-Enemy cooperation defaults OFF only when no saved choice exists. Invalid values use
-documented defaults. A reported configuration-write failure affects persistence;
-the current session still uses the selected setting. A movement runtime error
-or clock-reset guard disables movement for the current session; review the log
-before re-enabling. This safeguard does not silently rewrite the saved setting.
-
-Normal play logs compact startup/status/errors only. Automatic activation adds
-no chat instructions. Verbose capture stays OFF unless requested: Left Ctrl+Left Shift+F7 begins a
-20-second diagnostic capture; F9 ends it early; F8 takes a snapshot. Recording
-never controls movement activation. Loader log path follows `InfinityLoader.ini`;
-look for `[BG Redux]` entries in your loader log. Include build/version, steps
-and completed captures when reporting a defect.
+Normal play logs compact startup/status/errors. F6 recording includes detailed
+movement and party state and ends automatically after 20 seconds. Recording
+does not change enabled features. See QUICKSTART.md for the concise guide.
 
 ## Send one support file
 
-For a movement problem, press Left Ctrl+Left Shift+F7 and reproduce within
+For a movement problem, press Left Ctrl+Left Shift+F6 and reproduce within
 20 seconds. Then double-click `Collect BG Redux Support.cmd` beside `Baldur.exe`
 and send `bg-redux-support.log` with a description. Collect before restarting
 when possible; startup errors do not need a capture. The report is normally saved
@@ -141,3 +131,20 @@ Repository and issue reports: https://github.com/zach-hopkins/bg-pathfinding-red
 Original mod code and documentation: MIT License, copyright (c) 2026 Zach Hopkins.
 See the included `LICENSE`. The WeiDU installer retains its separate GPL-2.0
 license; its license and corresponding source are included under `third_party/weidu`.
+
+## Outside-combat-only allied passage
+
+**Left Ctrl + Left Shift + F2** toggles this optional mode. It defaults OFF and
+saves `OutOfCombatOnly` in `bg-redux-movement.ini` for later launches. F1 remains
+a session switch and starts ON.
+
+When enabled, allies pass through each other outside combat and use native
+blocking during combat. Allies already overlapping can move outward until clear;
+they cannot enter another ally’s space. Walls, doors, enemies and neutrals stay
+blocking. Enemy cooperation remains independent. Allied custom attack spacing,
+settle and visual preference pause during combat and retain their saved settings.
+
+Combat follows quicksave’s combat-only area check: a positive battle or damage
+timer in any loaded area. Passage resumes after the native cooldown expires.
+Dialogue and other save restrictions do not activate this mode. Combat transition and overlap escape were confirmed in the dedicated BG2EE 2.6
+test copy on October 10, 2026. All four profiles passed offline checks.

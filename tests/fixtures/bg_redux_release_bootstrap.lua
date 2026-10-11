@@ -1,8 +1,9 @@
 -- Settings change activation/defaults only; all52 movement policy is retained.
+MRIP_OutOfCombatOnly=release_options.OutOfCombatOnly
 MRIP_AttackSpacingEnabled=release_options.AttackSpacing
 MRIP_EnemyPrototypeEnabled=release_options.EnemyPrototype
 MRIP_SettleEnabled=release_options.GentleSettle
-if release_options.RoutePreference and preference_available then
+if preference_available then
     MRIP_PreferenceEnabled=true;EEex_Write32(preference_state,1)
 end
 local function release_persist(key,value)
@@ -10,10 +11,10 @@ local function release_persist(key,value)
     if not ok then log('CONFIG_WRITE_ERROR key='..key..' error='..tostring(err)) end
 end
 for _,entry in ipairs({
+    {'MRIP_ToggleCombatOnly','OutOfCombatOnly',function()return MRIP_OutOfCombatOnly end},
     {'MRIP_ToggleEnemyPrototype','EnemyPrototype',function()return MRIP_EnemyPrototypeEnabled end},
     {'MRIP_ToggleAttackSpacing','AttackSpacing',function()return MRIP_AttackSpacingEnabled end},
-    {'MRIP_ToggleSettle','GentleSettle',function()return MRIP_SettleEnabled end},
-    {'MRIP_TogglePreference','RoutePreference',function()return MRIP_PreferenceEnabled end}})do
+    {'MRIP_ToggleSettle','GentleSettle',function()return MRIP_SettleEnabled end}})do
     local name,key,current=entry[1],entry[2],entry[3]
     local toggle=_G[name]
     _G[name]=function()
@@ -25,9 +26,10 @@ if install_ok then
     EEex_GameState_AddInitializedListener(function()
         MRIP_StartupActivation=true
         local ok,err=pcall(function()
+            combat_refresh(true)
             if release_options.Movement and MRIP_TraceEnabled and not pass_mode then MRIP_TogglePass() end
-            log('RELEASE_READY version=0.1.8-preview movement='..tostring(pass_mode)
-                ..' preference='..tostring(MRIP_PreferenceEnabled)..' spacing='..tostring(MRIP_AttackSpacingEnabled)
+            log('RELEASE_READY build='..(development_build and 'dev' or 'release')..' version=0.1.10-preview movement='..tostring(pass_mode)
+                ..' combat_only='..tostring(MRIP_OutOfCombatOnly)..' preference='..tostring(MRIP_PreferenceEnabled)..' spacing='..tostring(MRIP_AttackSpacingEnabled)
                 ..' settle='..tostring(MRIP_SettleEnabled)..' capture='..tostring(active))
         end)
         MRIP_StartupActivation=false

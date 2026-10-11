@@ -10,6 +10,7 @@ function S.header()
     return 'package='..tostring(MRIP_PackageVersion or 'unavailable')
         ..' profile='..tostring(status.profile or 'unavailable')
         ..' revision='..tostring(MRIP_BaselineRevision or 'unavailable')
+        ..' combat_only='..tostring(MRIP_OutOfCombatOnly==true)..' combat_active='..tostring(MRIP_CombatActive==true)
         ..' paused='..safe(function()return worldScreen:CheckIfPaused()end)
 end
 function S.party(sprite)

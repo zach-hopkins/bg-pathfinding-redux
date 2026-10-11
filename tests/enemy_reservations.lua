@@ -78,7 +78,7 @@ for _,profile in ipairs({'bg2ee-2.6.6.0','bg2ee-steam-2.7.3.0','bgee-steam-2.6.6
  assert(loadstring('local enemy_policy=reservation_enemy\nlocal attack_policy={ally=function(ea)return ea>=2 and ea<=30 end}\n'
   ..'local attack_reservations=reservation_wrapped_cache\nlocal attack_actions={[134]=true}\nlocal function clock() return reservation_clock end\n'
   .."local function attack_select() return false,'enemy-query-budget' end\n"
-  ..'local function movement_ready() return clock() end\nlocal function attack_diagnose() end\nlocal function log() end\n'
+  ..'local function allied_combat_blocked() return false end\nlocal function movement_ready() return clock() end\nlocal function attack_diagnose() end\nlocal function log() end\n'
   ..source:sub(start,stop-1)))()
  check(reservation_enemy.wait(1,100,200,99,300,1000),'wrapper wait begins')
  local point={};reservation_clock=1100

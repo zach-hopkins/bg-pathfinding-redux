@@ -13,12 +13,12 @@ import sys
 ROOT = Path(__file__).resolve().parent.parent
 WORK = ROOT / 'tests/.work'
 RUNTIME = ROOT / 'bg-redux-movement/runtime/M_BGREDX.lua'
-PIN = 'D00C638B06E01882B82925844E6FAA2E0549DAA8D340A80F53AAB8F9D42B3FFE'
+PIN = '5280441DBAED7539F3D814932CFBBC779C568A33D03BAB1D75BA4A2B0B6D50EB'
 PROFILE_PINS = {
-    'bgee-steam-2.7.3.0': '0074020E172F8CDAA8A88D02167CEB9DCC143115DBF6F90AFD063C6E3076054E',
-    'bgee-steam-2.6.6.0': '188D8E50A326806BFC7892D7B5B7C7D8D79A5B2E527C830662E6A56F08476E10',
-    'bg2ee-2.6.6.0': '0A53CD503D863D667368FA51898A68ECB6AA525A19B5D230B6DB5F70B8943E5A',
-    'bg2ee-steam-2.7.3.0': '7A73BA90AFE25D9F01A50CADEA8382EAF95B48ABD4582549396142D64CB92689',
+    'bgee-steam-2.7.3.0': 'F399EF899C40F94152B636B82B277BFA0AD9E8051EB94CA511F25DCB0B4CAFD4',
+    'bgee-steam-2.6.6.0': '7137E9B5DEFA2425D04A9843441A136C033C9F5165A938A05B83F5CF0C0E81F8',
+    'bg2ee-2.6.6.0': 'D9D2471D23ED1FE659BE18B0E3F7CB2E5DE3215C1E276E8C14C87A4A6B862B5A',
+    'bg2ee-steam-2.7.3.0': 'F09F3C89BE4029A64C02F5934870E087B88DB08AE47632F100BFAB96492C6A81',
 }
 
 def sha(path):
@@ -47,13 +47,15 @@ def check_integrity():
     assert 'The above copyright notice and this permission notice shall be included' in license_text
     config = configparser.ConfigParser()
     config.read(ROOT/'bg-redux-movement/defaults.ini', encoding='utf-8')
-    for key in ('AttackSpacing','GentleSettle','RoutePreference'):
+    for key in ('AttackSpacing','GentleSettle'):
         assert config.get('Movement',key) == '1' and meta['defaults'][key]
+    assert not config.has_option('Movement','RoutePreference') and meta['defaults']['RoutePreference']
     assert config.get('Movement','EnemyPrototype')=='0' and not meta['defaults']['EnemyPrototype']
+    assert config.get('Movement','OutOfCombatOnly')=='0' and not meta['defaults']['OutOfCombatOnly']
     assert not config.has_option('Movement','Movement') and meta['defaults']['Movement']
     for profile in profiles:
         source=(ROOT/profile['runtime_path']).read_text(encoding='utf-8')
-        for name in ('bg_redux_release_config.lua','bg_redux_release_bootstrap.lua','bg_redux_public_logging.lua','bg_redux_support_context.lua'):
+        for name in ('bg_redux_combat.lua','bg_redux_release_config.lua','bg_redux_release_bootstrap.lua','bg_redux_public_logging.lua','bg_redux_support_context.lua'):
             fragment = (ROOT/'tests/fixtures'/name).read_text(encoding='utf-8')
             assert source.count(fragment) == 1, 'Fixture no longer matches accepted profile: '+name
     tp2 = (ROOT/'bg-redux-movement/bg-redux-movement.tp2').read_text(encoding='utf-8')
@@ -120,16 +122,19 @@ def main():
         if args.game and not dll and not args.lua:
             dll = args.game/'EEex/loader/LuaJIT/lua51.dll'
         lua_check(ROOT/'tests/configuration.lua', args.lua, dll)
+        lua_check(ROOT/'tests/preference_budget.lua',args.lua,dll)
         ran.append('configuration: persistent enemy choice, session movement and optional settings')
         lua_check(ROOT/'tests/public_logging.lua',args.lua,dll)
         ran.append('quiet public logging and explicit diagnostics')
         lua_check(ROOT/'tests/support_context.lua',args.lua,dll)
         ran.append('safe diagnostic context')
+        lua_check(ROOT/'tests/combat_only.lua',args.lua,dll)
         lua_check(ROOT/'tests/overlap_escape.lua',args.lua,dll)
         lua_check(ROOT/'tests/overlap_snapshot.lua',args.lua,dll)
         lua_check(ROOT/'tests/enemy_cooperation.lua',args.lua,dll)
         lua_check(ROOT/'tests/enemy_reservations.lua',args.lua,dll)
         ran.append('enemy cooperation, exclusive positions and bounded wait wrappers')
+        ran.append('combat-only timers, selective collision and outward escape')
         ran.append('overlap escape policy and actual profile integration')
         lua_check(ROOT/'tests/profile_selection.lua',args.lua,dll)
         ran.append('profile selection and unsupported-build refusal')
@@ -157,21 +162,21 @@ def main():
                 fixture=re.sub(r'0x[\dA-Fa-f]+',rva,fixture)
             fixture_path=WORK/'native_runtime.lua'
             fixture_path.write_text(fixture,encoding='utf-8')
-            for enabled,variant in ((False,False),(True,False),(True,True)):
+            for enabled,variant,development in ((False,False,False),(True,False,False),(True,True,False),(False,False,True),(True,False,True),(True,True,True)):
                 entry = WORK/('native-on.lua' if enabled else 'native-off.lua')
                 entry.write_text('MRIP_TEST_REVISION='+str(profile['revision'])+'\nMRIP_TEST_PROTOTYPE=true\n'
-                                 'MRIP_TEST_PREFERENCE=true\nMRIP_TEST_RELEASE=true\n'
+                                 'MRIP_TEST_PREFERENCE=true\nMRIP_TEST_RELEASE=true\nMRIP_TEST_DEVELOPMENT='+('true' if development else 'false')+'\n'
                                  'MRIP_TEST_GAME_PATH='+json.dumps(game.as_posix())+'\n'
                                  'MRIP_TEST_EXECUTABLE_PATH='+json.dumps(executable.as_posix())+'\n'
                                  'MRIP_TEST_VARIANT_HEADER='+('true' if variant else 'false')+'\n'
                                  'MRIP_TEST_RUNTIME_PATH='+json.dumps(profile['runtime_path'])+'\n'
-                                 +("MRIP_TEST_RELEASE_INITIAL_VALUES={RoutePreference='1'}\n" if enabled else '')
+                                 +("MRIP_TEST_RELEASE_INITIAL_VALUES={RoutePreference='1'}\n" if enabled else "MRIP_TEST_RELEASE_INITIAL_VALUES={RoutePreference='0'}\n")
                                  +("local fixture_loadfile=loadfile\nloadfile=function(path) if path=='bg-redux-movement/installed-profile.lua' then return function()return {profile="+json.dumps(profile['id'])+"}end end;return fixture_loadfile(path)end\n" if args.profile else '')
                                  +"local original_dofile=dofile\n"
-                                 +"dofile=function(path) if path==MRIP_TEST_RUNTIME_PATH then if not MRIP_BaselineRevision then MRIP_DispatchLoaded=nil end;local saved_io=io;io=nil;local ok,err=pcall(original_dofile,'bg-redux-movement/runtime/M_BGREDX.lua');io=saved_io;if not ok then error(err) end;return end;return original_dofile(path) end\n"
+                                 +"dofile=function(path) if path==MRIP_TEST_RUNTIME_PATH then if not MRIP_BaselineRevision then MRIP_DispatchLoaded=nil end;local saved_io=io;local selector=assert(io.open('bg-redux-movement/runtime/M_BGREDX.lua')):read('*a');selector=selector:gsub('MRIP_DevelopmentBuild=false','MRIP_DevelopmentBuild='..tostring(MRIP_TEST_DEVELOPMENT==true));io=nil;local ok,err=pcall(assert(loadstring(selector)));io=saved_io;if not ok then error(err) end;return end;return original_dofile(path) end\n"
                                  +"dofile('tests/.work/native_runtime.lua')\n",encoding='utf-8')
                 lua_check(entry,args.lua,dll)
-            ran.append(profile['id']+': dispatcher + native runtime, preference OFF/ON and unfamiliar-header activation')
+            ran.append(profile['id']+': dispatcher + native runtime, release/dev maps, legacy preference OFF/ON ignored and unfamiliar-header activation')
     result=dict(passed=True,checks=ran,game_launched=False,
                 limits='Simulated Lua/EEex state plus actual bytes/layout when --game is supplied. No gameplay emulation.')
     (WORK/'checks.json').write_text(json.dumps(result,indent=2)+'\n',encoding='utf-8')

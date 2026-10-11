@@ -4,12 +4,12 @@ local function check(value)assert(value);checks=checks+1 end
 local defaults,warnings=R.read(function(path,section,key,default)
     check(path=='.\\bg-redux-movement.ini' and section=='Movement' and key~='Movement');return default
 end)
-check(defaults.Movement and not defaults.EnemyPrototype and defaults.AttackSpacing and defaults.GentleSettle and not defaults.RoutePreference and #warnings==0)
+check(defaults.Movement and not defaults.EnemyPrototype and defaults.AttackSpacing and defaults.GentleSettle and defaults.RoutePreference and #warnings==0)
 local invalid,warnings=R.read(function()return 'maybe' end)
-check(invalid.Movement and not invalid.EnemyPrototype and invalid.AttackSpacing and invalid.GentleSettle and not invalid.RoutePreference and #warnings==4)
+check(invalid.Movement and not invalid.EnemyPrototype and invalid.AttackSpacing and invalid.GentleSettle and invalid.RoutePreference and #warnings==4)
 local bootstrap=assert(io.open('tests/fixtures/bg_redux_release_bootstrap.lua')):read('*a')
 local legacy=R.read(function(_,_,key,default)
-    check(key~='Movement');return key=='EnemyPrototype' and '1' or default
+    check(key~='Movement' and key~='RoutePreference');return key=='EnemyPrototype' and '1' or default
 end)
 check(legacy.Movement and legacy.EnemyPrototype)
 for bits=0,15 do
@@ -25,9 +25,11 @@ for bits=0,15 do
         env._G=env;setmetatable(env,{__index=_G})
         env.EEex={SetINIString=function(_,_,key,value)env.writes[key]=value end}
         env.EEex_Write32=function(address,value)env.native[address]=value end
+        env.combat_refresh=function()return false end
         env.log=function(line)env.logs[#env.logs+1]=line end
         env.movement_disable=function()env.pass_mode=false;env.disabled=true end
         env.MRIP_TogglePass=function()env.pass_mode=not env.pass_mode end
+        env.MRIP_ToggleCombatOnly=function()env.MRIP_OutOfCombatOnly=not env.MRIP_OutOfCombatOnly end
         env.MRIP_ToggleEnemyPrototype=function()env.MRIP_EnemyPrototypeEnabled=not env.MRIP_EnemyPrototypeEnabled end
         env.MRIP_ToggleAttackSpacing=function()env.MRIP_AttackSpacingEnabled=not env.MRIP_AttackSpacingEnabled end
         env.MRIP_ToggleSettle=function()env.MRIP_SettleEnabled=not env.MRIP_SettleEnabled end
@@ -37,11 +39,11 @@ for bits=0,15 do
         check(env.pass_mode==options.Movement and env.active==false)
         check(env.MRIP_AttackSpacingEnabled==options.AttackSpacing and env.MRIP_SettleEnabled==options.GentleSettle)
         check(env.MRIP_EnemyPrototypeEnabled==options.EnemyPrototype)
-        check(env.MRIP_PreferenceEnabled==(options.RoutePreference and available))
+        check(env.MRIP_PreferenceEnabled==(available))
         check(not env.disabled)
         if available then
-            for _,entry in ipairs({{'MRIP_ToggleEnemyPrototype','EnemyPrototype'},{'MRIP_ToggleAttackSpacing','AttackSpacing'},
-                {'MRIP_ToggleSettle','GentleSettle'},{'MRIP_TogglePreference','RoutePreference'}})do
+            for _,entry in ipairs({{'MRIP_ToggleCombatOnly','OutOfCombatOnly'},{'MRIP_ToggleEnemyPrototype','EnemyPrototype'},{'MRIP_ToggleAttackSpacing','AttackSpacing'},
+                {'MRIP_ToggleSettle','GentleSettle'}})do
                 local before=options[entry[2]];env[entry[1]]()
                 check(options[entry[2]]==not before and env.writes[entry[2]]==(before and '0' or '1'))
                 env[entry[1]]()

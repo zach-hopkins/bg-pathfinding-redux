@@ -97,7 +97,7 @@ local function fixture()
     snapshot_test={policy=P,occupancy=occupancy,log=function(s) logs[#logs+1]=s end,on=true}
     assert(loadstring('local enemy_policy=snapshot_enemy_fixture\nlocal function clock() return 1000 end\nlocal base=0x140000000\nlocal active=true\nlocal log=snapshot_test.log\n'
         ..'local snapshot_policy,attack_policy=snapshot_test.policy,snapshot_test.occupancy\n'
-        ..'local function movement_ready() return snapshot_test.on and 1000 or nil end\n'..shared..adapter))()
+        ..'local function movement_ready() return snapshot_test.on and 1000 or nil end\n'..'local function allied_combat_blocked() return false end\nlocal function combat_escape_for() return nil end\n'..shared..adapter))()
     return {mem=mem,logs=logs,writes=writes,mover=mover,ally=ally,sprites=sprites,area=area,
         request=request,private=private,live=live,ap=ap,mp=mp}
 end

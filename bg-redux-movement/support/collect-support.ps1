@@ -100,10 +100,10 @@ if ($taskLogSetting) {
 Add-Section 'Loader log destination' ($taskLogSetting + ' (existing custom destinations are preserved)')
 $taskCaptureStatus = if ($taskLogText -match '\[BG Redux\].*\bSTART label=') {
     'Movement capture present. START/END lines identify each recorded run.'
-} else { 'NO MOVEMENT CAPTURE RECORDED. Press Left Ctrl+Left Shift+F7 and reproduce within 20 seconds, then collect again.' }
+} else { 'NO MOVEMENT CAPTURE RECORDED. Press Left Ctrl+Left Shift+F6 and reproduce within 20 seconds, then collect again.' }
 $taskSnapshotStatus = if ($taskLogText -match '\[BG Redux\].*\bSNAPSHOT ') {
     'Party/context snapshots present.'
-} else { 'NO GAME-STATE SNAPSHOT RECORDED. Left Ctrl+Left Shift+F8 records a snapshot while in game.' }
+} else { 'NO GAME-STATE SNAPSHOT RECORDED. Start a 20-second recording with Left Ctrl+Left Shift+F6 to include party state.' }
 Add-Section 'Diagnostic coverage' ($taskCaptureStatus + "`r`n" + $taskSnapshotStatus +
     "`r`nSnapshots/captures describe their recorded moments, not necessarily the current state.`r`nIf startup failed, a capture is not required. For crashes, attach the dump separately if requested.")
 Add-Section 'Loader output (bounded; includes startup, errors, captures and game context)' $taskLogText

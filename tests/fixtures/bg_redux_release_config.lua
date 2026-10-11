@@ -1,10 +1,10 @@
 -- Persistent release switches, using EEex's installed INI API.
 local R={path='.\\bg-redux-movement.ini',section='Movement',keys={
-    {'EnemyPrototype',false},{'AttackSpacing',true},{'GentleSettle',true},{'RoutePreference',false}}}
+    {'OutOfCombatOnly',false},{'EnemyPrototype',false},{'AttackSpacing',true},{'GentleSettle',true}}}
 function R.read(getter)
     assert(type(getter)=='function','EEex INI reader unavailable')
     -- Core movement starts ON every launch; ignore a legacy saved Movement key.
-    local options,warnings={Movement=true},{}
+    local options,warnings={Movement=true,RoutePreference=true},{}
     for _,entry in ipairs(R.keys)do
         local key,default=entry[1],entry[2]
         local raw=getter(R.path,R.section,key,default and '1' or '0')

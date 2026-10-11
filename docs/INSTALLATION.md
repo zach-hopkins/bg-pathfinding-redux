@@ -47,23 +47,23 @@ remove that configuration file manually after uninstall if desired.
 
 ```ini
 [Movement]
+OutOfCombatOnly=0
 EnemyPrototype=0
 AttackSpacing=1
 GentleSettle=1
-RoutePreference=1
 ```
 
-Edit with the game closed and restart, or use Left Ctrl + Left Shift + F2–F5.
-F6 changes allied movement only for the current session; it starts ON at each
+Edit with the game closed and restart, or use Left Ctrl + Left Shift + F3–F5.
+F1 changes allied movement only for the current session; it starts ON at each
 launch and ignores legacy `Movement` INI values. Optional choices are stored in
 the game folder, independently of saves. Invalid or missing values use the
 runtime's fallback defaults: attack spacing and settle ON; enemy cooperation and
-route preference OFF. The installer supplies the explicit
-ON route-preference value for fresh installations.
+outside-combat-only mode OFF. Visual preference is always enabled in release
+builds; a legacy RoutePreference INI value is ignored.
 
 ## Reporting a problem
 
-Press Left Ctrl + Left Shift + F7, reproduce a movement issue within 20 seconds,
+Press Left Ctrl + Left Shift + F6, reproduce a movement issue within 20 seconds,
 then double-click `Collect BG Redux Support.cmd` in the game folder. Send
 `bg-redux-support.log` and reproduction steps. Collect before restarting when
 possible. Startup failures do not require recording. See [support details](SUPPORT.md).
@@ -74,7 +74,7 @@ an existing custom path is preserved. Uninstall restores the prior loader INI.
 | Symptom | First check |
 | --- | --- |
 | Installer says “SKIPPING” | Read the printed reason. Installation requires BGEE/SoD/BG2EE/EET and EEex. Unknown hashes/headers and custom filenames warn; a likely profile is tried with native checks. |
-| Game starts but no allied passage | Launch through InfinityLoader; check F6 state and startup/refusal messages. |
+| Game starts but no allied passage | Launch through InfinityLoader; check F1 state and startup/refusal messages. |
 | An optional feature is unavailable | Inspect the log's signature/layout/backend refusal; do not remove the guard. |
 | Visual preference seems subtle | It is bounded and may retain the native route. It is not continuous steering or guaranteed lanes. |
 | A stopped idle stack remains overlapped after F4 | Arrival normally triggers settle. Enabling it on an already idle stack does not guarantee enrollment. |

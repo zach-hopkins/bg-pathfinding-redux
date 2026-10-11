@@ -8,11 +8,11 @@ MRIP_EnemyPrototypeEnabled=false
 local release_config=(function()
 -- Persistent release switches, using EEex's installed INI API.
 local R={path='.\\bg-redux-movement.ini',section='Movement',keys={
-    {'EnemyPrototype',false},{'AttackSpacing',true},{'GentleSettle',true},{'RoutePreference',false}}}
+    {'OutOfCombatOnly',false},{'EnemyPrototype',false},{'AttackSpacing',true},{'GentleSettle',true}}}
 function R.read(getter)
     assert(type(getter)=='function','EEex INI reader unavailable')
     -- Core movement starts ON every launch; ignore a legacy saved Movement key.
-    local options,warnings={Movement=true},{}
+    local options,warnings={Movement=true,RoutePreference=true},{}
     for _,entry in ipairs(R.keys)do
         local key,default=entry[1],entry[2]
         local raw=getter(R.path,R.section,key,default and '1' or '0')
@@ -36,12 +36,16 @@ local prefix = "[BG Redux]"
 local run, event, active, started_ms = 0, 0, false, nil
 local last_sample, last_summary = -1, -1
 local previous_party = {}
-local key_start, key_snapshot, key_end = EEex_Key_GetFromName("F7"), EEex_Key_GetFromName("F8"), EEex_Key_GetFromName("F9")
-local key_preference=EEex_Key_GetFromName("F3")
+-- Release F1-F6; dev adds F7 comparisons and F9 early recording stop.
+local development_build=MRIP_DevelopmentBuild==true
+local key_pass = EEex_Key_GetFromName("F1")
+local key_combat = EEex_Key_GetFromName("F2")
+local key_enemy = EEex_Key_GetFromName("F3")
 local key_settle = EEex_Key_GetFromName("F4")
-local key_enemy = EEex_Key_GetFromName("F2")
 local key_attack = EEex_Key_GetFromName("F5")
-local key_pass = EEex_Key_GetFromName("F6")
+local key_start = EEex_Key_GetFromName("F6")
+local key_preference=development_build and EEex_Key_GetFromName("F7") or nil
+local key_end=development_build and EEex_Key_GetFromName("F9") or nil
 local key_ctrl, key_shift = EEex_Key_GetFromName("Left Ctrl"), EEex_Key_GetFromName("Left Shift")
 local queue_size, stride, header_size = 4096, 128, 64
 local buffer, base, route_context
@@ -129,6 +133,7 @@ function S.header()
     return 'package='..tostring(MRIP_PackageVersion or 'unavailable')
         ..' profile='..tostring(status.profile or 'unavailable')
         ..' revision='..tostring(MRIP_BaselineRevision or 'unavailable')
+        ..' combat_only='..tostring(MRIP_OutOfCombatOnly==true)..' combat_active='..tostring(MRIP_CombatActive==true)
         ..' paused='..safe(function()return worldScreen:CheckIfPaused()end)
 end
 function S.party(sprite)
@@ -437,9 +442,43 @@ function P.footprint(a,x,y)
     local dx,dy=math.abs(x-math.floor(a.x/16)),math.abs(y-math.floor(a.y/12))
     return dx<=r and dy<=r and dx+dy<=math.floor(a.personal/2)+1
 end
+-- Combat ally escape is granted once at the collision transition, never from
+-- an overlap first discovered while walking. The original footprint bounds it.
+function P.combat_grant(m,a)
+    local g=m and m.combat_escape and m.combat_escape[a.id]
+    return g and g.owner==a.owner and g.area==a.area and m.area==g.area
+        and P.footprint(g,math.floor(m.x/16),math.floor(m.y/12)) and g
+end
+function P.capture(actors)
+    local grants,count={},0
+    for _,m in ipairs(actors) do
+        if P.ally(m.ea) and m.personal==3 then
+            local pairs={}
+            for _,a in ipairs(actors) do
+                if a.id~=m.id and a.area==m.area and P.ally(a.ea)
+                    and P.footprint(a,math.floor(m.x/16),math.floor(m.y/12)) then
+                    count=count+1;assert(count<=4096,'combat overlap grant limit')
+                    pairs[a.id]={id=a.id,owner=a.owner,area=a.area,x=a.x,y=a.y,personal=a.personal}
+                end
+            end
+            if next(pairs) then grants[m.id]={owner=m.owner,area=m.area,pairs=pairs} end
+        end
+    end
+    return grants,count
+end
+function P.bind(grants,m)
+    local r=grants[m.id]
+    if not r then return nil end
+    if r.owner~=m.owner or r.area~=m.area or not P.ally(m.ea) or m.personal~=3 then grants[m.id]=nil;return nil end
+    for id,g in pairs(r.pairs) do
+        if not P.footprint(g,math.floor(m.x/16),math.floor(m.y/12)) then r.pairs[id]=nil end
+    end
+    if not next(r.pairs) then grants[m.id]=nil;return nil end
+    return r.pairs
+end
 function P.overlapping(m,a)
     return m and m.id~=a.id and P.ally(m.ea) and m.personal==3
-        and (a.ea==128 or a.ea>=200 and a.ea<=255)
+        and (a.ea==128 or a.ea>=200 and a.ea<=255 or m.combat_blocked and P.ally(a.ea) and P.combat_grant(m,a))
         and a.personal>=1 and a.personal<=255 and a.x>=0 and a.y>=0
         and P.footprint(a,math.floor(m.x/16),math.floor(m.y/12))
 end
@@ -447,7 +486,8 @@ function P.outward(m,a,x,y)
     if not P.overlapping(m,a) then return false end
     local mx,my=math.floor(m.x/16),math.floor(m.y/12)
     if x==mx and y==my then return true end -- the path search's root cell
-    local ax,ay=math.floor(a.x/16),math.floor(a.y/12)
+    local anchor=m.combat_blocked and P.ally(a.ea) and P.combat_grant(m,a) or a
+    local ax,ay=math.floor(anchor.x/16),math.floor(anchor.y/12)
     local dx,dy=mx-ax,my-ay
     local nx,ny=x-ax,y-ay
     return nx*nx+ny*ny>dx*dx+dy*dy and (x-mx)*dx+(y-my)*dy>=0
@@ -459,7 +499,7 @@ function P.cell(q,x,y)
     local low,high=0,0
     for _,a in ipairs(q.actors) do
         local inside=P.footprint(a,x,y)
-        if inside and not ((not q.mover or P.ally(q.mover.ea)) and P.ally(a.ea))
+        if inside and not (q.mover and a.id==q.mover.id or (not q.mover or not q.mover.combat_blocked and P.ally(q.mover.ea)) and P.ally(a.ea))
             and not enemy_policy.friend(q.mover,a) and not P.outward(q.mover,a,x,y) then return false end
         if a.painted==1 and a.removed==0 then
             if inside then
@@ -490,7 +530,7 @@ function P.mover_evidence(a)
         a.category,a.busy,a.bump,a.painted,a.removed,a.x,a.y)
 end
 local function eligible_ally(a,m)
-    return ((allied(m) and allied(a)) or enemy_policy.friend(m,a)) and a.painted == 1 and a.removed == 0
+    return ((not m.combat_blocked and allied(m) and allied(a)) or enemy_policy.friend(m,a)) and a.painted == 1 and a.removed == 0
 end
 local function rejected_actor(a,dx,dy,envelope)
     local failed={}
@@ -584,6 +624,100 @@ end)()
 local pass_mode, pass_checks, pass_allowed, pass_denied = false, 0, 0, 0
 local pass_reasons = {}
 local movement_ready
+-- Same combat-only predicate as CGameArea::CanSaveGame(checkCombat=1).
+-- Quicksave scans all 12 loaded areas; dialogue/quest save restrictions are unrelated.
+local combat_state,combat_blocked,combat_last,combat_error=nil,false,nil,false
+local combat_grants={}
+local function combat_actor(sprite)
+    local a={id=sprite.m_id,owner=EEex_UDToPtr(sprite),
+        area=sprite.m_pArea and EEex_UDToPtr(sprite.m_pArea) or 0,
+        ea=sprite.m_typeAI.m_EnemyAlly,x=sprite.m_pos.x,y=sprite.m_pos.y,personal=sprite:getPersonalSpace()}
+    assert(a.personal>=1 and a.personal<=255 and a.x>=0 and a.y>=0,'invalid combat actor')
+    return a
+end
+local function combat_capture()
+    local game=EEex_EngineGlobal_CBaldurChitin.m_pObjectGame
+    local actors,seen={},{}
+    for slot=0,11 do
+        local area=game.m_gameAreas:get(slot)
+        if area and EEex_UDToPtr(area)~=0 then
+            area:forAllOfTypeInRange(0,0,CAIObjectType.ANYONE,32767,function(object)
+                if object and EEex_GameObject_IsSprite(object,true) then
+                    local s=EEex_CastUD(object,'CGameSprite')
+                    if overlap_escape.ally(s.m_typeAI.m_EnemyAlly) and not seen[s.m_id] then
+                        assert(#actors<256,'combat ally limit')
+                        local a=combat_actor(s);actors[#actors+1]=a;seen[a.id]=true
+                    end
+                end
+            end,0,0)
+        end
+    end
+    return overlap_escape.capture(actors)
+end
+local function combat_prune()
+    -- Resolve IDs anew: never retain sprite userdata across heartbeats.
+    for id,r in pairs(combat_grants) do
+        local s=EEex_GameObject_Get(id)
+        if not s or not EEex_GameObject_IsSprite(s,true) then combat_grants[id]=nil
+        else
+            local m=combat_actor(EEex_CastUD(s,'CGameSprite'))
+            overlap_escape.bind(combat_grants,m)
+            if combat_grants[id] then
+                for other,g in pairs(r.pairs) do
+                    local b=EEex_GameObject_Get(other)
+                    local a=b and EEex_GameObject_IsSprite(b,true) and combat_actor(EEex_CastUD(b,'CGameSprite')) or nil
+                    if not a or a.owner~=g.owner or a.area~=g.area or not overlap_escape.ally(a.ea)
+                        or not overlap_escape.footprint(a,math.floor(m.x/16),math.floor(m.y/12)) then r.pairs[other]=nil end
+                end
+                if not next(r.pairs) then combat_grants[id]=nil end
+            end
+        end
+    end
+end
+local function combat_refresh(force)
+    local now=clock()
+    if not force and now and combat_last and now>=combat_last and now-combat_last<50 then return combat_blocked end
+    combat_last=now
+    local blocked=false
+    if MRIP_OutOfCombatOnly then
+        local ok,value=pcall(function()
+            local game=EEex_EngineGlobal_CBaldurChitin.m_pObjectGame
+            for slot=0,11 do
+                local area=game.m_gameAreas:get(slot)
+                if area and EEex_UDToPtr(area)~=0 and (area.m_nBattleSongCounter>0 or area.m_nDamageCounter>0) then return true end
+            end
+            return false
+        end)
+        blocked=not ok or value
+        if not ok and not combat_error then combat_error=true;log('COMBAT_CHECK_ERROR '..tostring(value)) end
+    end
+    if blocked and not combat_blocked then
+        local ok,grants,count=pcall(combat_capture)
+        combat_grants=ok and grants or {}
+        log('COMBAT_ESCAPE_CAPTURE pairs='..tostring(ok and count or 0)..(ok and '' or ' error='..tostring(grants)))
+    elseif not blocked then combat_grants={}
+    else
+        local ok,err=pcall(combat_prune)
+        if not ok then combat_grants={};log('COMBAT_ESCAPE_PRUNE error='..tostring(err)) end
+    end
+    if blocked~=combat_blocked then log('COMBAT_COLLISION blocked='..tostring(blocked)) end
+    combat_blocked=blocked
+    MRIP_CombatActive=blocked
+    if combat_state then EEex_Write32(combat_state,blocked and 1 or 0) end
+    return blocked
+end
+local function allied_combat_blocked(sprite)
+    return combat_refresh(false) and sprite and sprite.m_typeAI.m_EnemyAlly>=2 and sprite.m_typeAI.m_EnemyAlly<=30
+end
+local function combat_escape_for(a)
+    if not combat_blocked then return nil end
+    return overlap_escape.bind(combat_grants,a)
+end
+function MRIP_ToggleCombatOnly()
+    MRIP_OutOfCombatOnly=not MRIP_OutOfCombatOnly
+    combat_refresh(true)
+    feedback('outside-combat-only allied passage '..(MRIP_OutOfCombatOnly and 'ON' or 'OFF'))
+end
 -- Revision 10: preserve the decision, record each refusal up to a bounded cap.
 local keep_detail_limit=128
 local function keep_detail(kind,mover,point,reason,evidence,ordinal)
@@ -604,6 +738,9 @@ local function actor_record(sprite, party_ids)
         category=EEex_Read32(ptr+0x492C), busy=EEex_Read32(ptr+0x493C),
         bump=EEex_ReadU8(ptr+0x4930), painted=EEex_Read32(ptr+0x5250),
         removed=EEex_Read32(ptr+0x5254)}
+    a.owner=ptr;a.area=sprite.m_pArea and EEex_UDToPtr(sprite.m_pArea) or 0
+    a.combat_blocked=allied_combat_blocked(sprite)
+    a.combat_escape=combat_escape_for(a)
     return enemy_policy.bind(a,ptr,sprite.m_pArea and EEex_UDToPtr(sprite.m_pArea) or 0,clock())
 end
 local function pass_decision(mover, point)
@@ -1089,6 +1226,9 @@ local function worker_body()
         mov r12, rdx
         mov rsi, r8
         mov qword ptr [rsp+28h], r9
+        mov rax, ]]..combat_state..'\n'..[[
+        cmp dword ptr [rax], 0
+        jne worker_deny
         mov rax, #L(MRIP_ring)
         cmp dword ptr [rax+56], 1
         jne worker_deny
@@ -1227,6 +1367,9 @@ local function worker_body()
         test eax, eax
         jz worker_deny
         ; Fresh identities/allegiance and capture epoch are checked on the worker.
+        mov rax, ]]..combat_state..'\n'..[[
+        cmp dword ptr [rax], 0
+        jne worker_deny
         mov rax, #L(MRIP_ring)
         cmp dword ptr [rax+56], 1
         jne worker_deny
@@ -1351,6 +1494,9 @@ local function bump_body()
         #STACK_MOD(8)
         push rax
         #STACK_MOD(8)
+        mov rax, ]]..combat_state..'\n'..[[
+        cmp dword ptr [rax], 0
+        jne bump_native
         mov rax, #L(MRIP_ring)
         cmp dword ptr [rax+56], 1
         jne bump_native
@@ -1565,6 +1711,7 @@ function MRIP_ToggleAttackSpacing()
     feedback(MRIP_AttackSpacingEnabled and 'attack spacing ON' or 'attack spacing OFF')
 end
 local function attack_select(mover,target,reach,point)
+    if allied_combat_blocked(mover) then return false,'combat-native' end
     if not MRIP_AttackSpacingEnabled then return false,'spacing-off' end
     local now=movement_ready()
     if not now then return false,'movement-off' end
@@ -1708,6 +1855,7 @@ function MRIP_AttackPosition(mover,target,reach,point)
 end
 function MRIP_AttackContinue(mover,target,reach)
     local ok,continue,reason=pcall(function()
+        if allied_combat_blocked(mover) then return false end
         if not MRIP_AttackSpacingEnabled then return false end
         local now=movement_ready()
         if not now then return false end
@@ -2104,6 +2252,7 @@ local function settle_safe(sprite,a)
         and EEex_BAnd(a.state,settle_mask)==0 and EEex_BAnd(a.base_state,settle_mask)==0
 end
 local function settle_observe(sprite,action)
+    if combat_refresh(false) then return end
     if not MRIP_SettleEnabled or not pass_mode or not sprite or sprite:getPortraitIndex()<0 then return end
     local r=settle_records[sprite.m_id]
     if r and r.token then
@@ -2188,6 +2337,7 @@ local function settle_submit(sprite,r,p,now)
     log(string.format('SETTLE_MOVE mover=%d point=%d,%d token=%d',r.id,p.x,p.y,r.token))
 end
 local function settle_tick_inner(now)
+    if combat_refresh(false) then settle_reset(false);return end
     if not MRIP_SettleEnabled or not settle_world() then
         -- Pause/dialogue preserves an owned move, but resets arrival timing.
         for _,r in pairs(settle_records) do r.since=nil;if r.token then r.started=now end end
@@ -2342,10 +2492,11 @@ movement_ready=function()
         movement_disable('clock-reset');return nil
     end
     movement_last_clock=now
+    combat_refresh(false)
     return now
 end
 local function movement_status()
-    log('MOVEMENT_STATE enabled='..tostring(pass_mode)..' preference='..tostring(MRIP_PreferenceEnabled)..' spacing='..tostring(MRIP_AttackSpacingEnabled)..' settle='..tostring(MRIP_SettleEnabled)..' capture='..tostring(active)..' generation='..activation_generation)
+    log('MOVEMENT_STATE combat_only='..tostring(MRIP_OutOfCombatOnly)..' combat_active='..tostring(combat_blocked)..' enabled='..tostring(pass_mode)..' preference='..tostring(MRIP_PreferenceEnabled)..' spacing='..tostring(MRIP_AttackSpacingEnabled)..' settle='..tostring(MRIP_SettleEnabled)..' capture='..tostring(active)..' generation='..activation_generation)
 end
 local function movement_party(now)
     if maintenance_clock and now>=maintenance_clock and now-maintenance_clock<100 then return end
@@ -2522,7 +2673,7 @@ function P.plan(q,occupancy)
             or not ((a.painted==1 and a.removed==0) or (a.painted==0 and a.removed==1)) then
             return nil,'unknown-actor'
         end
-        if ((not q.mover or occupancy.ally(q.mover.ea)) and occupancy.ally(a.ea)
+        if (q.mover and a.id==q.mover.id or (not q.mover or not q.mover.combat_blocked and occupancy.ally(q.mover.ea)) and occupancy.ally(a.ea)
             or enemy_policy.friend(q.mover,a) or overlap_escape.overlapping(q.mover,a)) and a.painted==1 then
             local radius=math.max(0,math.floor((a.personal-1)/2))
             local cx,cy=math.floor(a.x/16),math.floor(a.y/12)
@@ -3669,6 +3820,7 @@ local function preference_fail(reason)
     feedback('visual route preference disabled; check EEex log')
 end
 function MRIP_TogglePreference()
+    if not development_build then return end
     if not MRIP_TraceEnabled or not preference_available then feedback('visual route preference unavailable; check EEex log');return end
     if active then MRIP_Stop('preference-mode-change') end
     MRIP_PreferenceEnabled=not MRIP_PreferenceEnabled
@@ -3683,6 +3835,7 @@ local function preference_select(sprite,path,count,output,caller,message,trace)
     local function preference_keep(s,reason) trace.reason=reason;return keep(s,reason,log) end
     preference_proposal=nil
     if sprite then preference_routes.reset(sprite.m_id) end
+    if allied_combat_blocked(sprite) then return 0 end
     if not MRIP_PreferenceEnabled then return 0 end
     local now=movement_ready()
     local evaluation_started=clock()
@@ -3883,9 +4036,7 @@ local function preference_select(sprite,path,count,output,caller,message,trace)
         ..' lookups='..EEex_Read32(preference_state+52)) end
     if status==-8 then error('native planner ownership changed') end
     if elapsed>4 then
-        log('PREFERENCE_BUDGET_DISABLED elapsed_ms='..elapsed)
-        MRIP_PreferenceEnabled=false;EEex_Write32(preference_state,0)
-        feedback('visual route preference OFF after slow query; movement stays ON')
+        log('PREFERENCE_BUDGET_KEEP elapsed_ms='..elapsed)
         return preference_keep(sprite,'elapsed-budget')
     end
     if status~=1 or EEex_Read32(storage+52)~=1 then return preference_keep(sprite,'native-unreached-or-unavailable') end
@@ -4020,12 +4171,10 @@ local function preference_select(sprite,path,count,output,caller,message,trace)
     trace.mark('validate')
     if reason~='preferred' then return preference_keep(sprite,reason) end
     if clock()-evaluation_started>8 then
-        log('PREFERENCE_BUDGET_DISABLED evaluation_ms='..(clock()-evaluation_started))
-        MRIP_PreferenceEnabled=false;EEex_Write32(preference_state,0)
-        feedback('visual route preference OFF after slow evaluation; movement stays ON')
+        log('PREFERENCE_BUDGET_KEEP evaluation_ms='..(clock()-evaluation_started))
         return preference_keep(sprite,'evaluation-budget')
     end
-    if not MRIP_PreferenceEnabled or not movement_ready() or EEex_UDToPtr(sprite.m_pArea)~=ap
+    if allied_combat_blocked(sprite) or not MRIP_PreferenceEnabled or not movement_ready() or EEex_UDToPtr(sprite.m_pArea)~=ap
         or sprite.m_curAction.m_actionID~=23 or sprite.m_curAction.m_dest.x~=goal.x or sprite.m_curAction.m_dest.y~=goal.y
         or EEex_ReadPtr(bitmap+0x120)~=live then return preference_keep(sprite,'changed-context') end
     for i,p in ipairs(points) do if EEex_Read32(path+(i-1)*4)~=p.x+(319-p.y)*320 then return preference_keep(sprite,'changed-baseline') end end
@@ -4055,6 +4204,7 @@ function MRIP_PreferenceCommit(sprite,count,status)
 end
 function MRIP_PreferenceDelivered(sprite)
     local ok,err=pcall(function()
+        if allied_combat_blocked(sprite) then preference_routes.reset();return end
         local now=MRIP_PreferenceEnabled and movement_ready()
         if not now then preference_routes.reset();return end
         local c=preference_context(sprite)
@@ -4415,6 +4565,8 @@ local install_ok,install_err=pcall(function()
         end
     end
     assert(#layout_errors==0,"worker field layout validation failed: "..table.concat(layout_errors," | "))
+    combat_state=EEex_Malloc(4)
+    EEex_Write32(combat_state,0)
     buffer=EEex_Malloc(header_size+queue_size*stride)
     for offset=0,header_size-4,4 do EEex_Write32(buffer+offset,0) end
     for slot=0,5 do EEex_Write32(buffer+32+slot*4,-1) end
@@ -4599,10 +4751,11 @@ end)
 if not install_ok then log("DISABLED "..tostring(install_err)) end
 if install_ok then preference_install() end
 -- Settings change activation/defaults only; all52 movement policy is retained.
+MRIP_OutOfCombatOnly=release_options.OutOfCombatOnly
 MRIP_AttackSpacingEnabled=release_options.AttackSpacing
 MRIP_EnemyPrototypeEnabled=release_options.EnemyPrototype
 MRIP_SettleEnabled=release_options.GentleSettle
-if release_options.RoutePreference and preference_available then
+if preference_available then
     MRIP_PreferenceEnabled=true;EEex_Write32(preference_state,1)
 end
 local function release_persist(key,value)
@@ -4610,10 +4763,10 @@ local function release_persist(key,value)
     if not ok then log('CONFIG_WRITE_ERROR key='..key..' error='..tostring(err)) end
 end
 for _,entry in ipairs({
+    {'MRIP_ToggleCombatOnly','OutOfCombatOnly',function()return MRIP_OutOfCombatOnly end},
     {'MRIP_ToggleEnemyPrototype','EnemyPrototype',function()return MRIP_EnemyPrototypeEnabled end},
     {'MRIP_ToggleAttackSpacing','AttackSpacing',function()return MRIP_AttackSpacingEnabled end},
-    {'MRIP_ToggleSettle','GentleSettle',function()return MRIP_SettleEnabled end},
-    {'MRIP_TogglePreference','RoutePreference',function()return MRIP_PreferenceEnabled end}})do
+    {'MRIP_ToggleSettle','GentleSettle',function()return MRIP_SettleEnabled end}})do
     local name,key,current=entry[1],entry[2],entry[3]
     local toggle=_G[name]
     _G[name]=function()
@@ -4625,9 +4778,10 @@ if install_ok then
     EEex_GameState_AddInitializedListener(function()
         MRIP_StartupActivation=true
         local ok,err=pcall(function()
+            combat_refresh(true)
             if release_options.Movement and MRIP_TraceEnabled and not pass_mode then MRIP_TogglePass() end
-            log('RELEASE_READY version=0.1.8-preview movement='..tostring(pass_mode)
-                ..' preference='..tostring(MRIP_PreferenceEnabled)..' spacing='..tostring(MRIP_AttackSpacingEnabled)
+            log('RELEASE_READY build='..(development_build and 'dev' or 'release')..' version=0.1.10-preview movement='..tostring(pass_mode)
+                ..' combat_only='..tostring(MRIP_OutOfCombatOnly)..' preference='..tostring(MRIP_PreferenceEnabled)..' spacing='..tostring(MRIP_AttackSpacingEnabled)
                 ..' settle='..tostring(MRIP_SettleEnabled)..' capture='..tostring(active))
         end)
         MRIP_StartupActivation=false
@@ -4637,14 +4791,14 @@ end
 EEex_Key_AddPressedListener(function(key)
     if e==nil or worldScreen~=e:GetActiveEngine() or Infinity_TextEditHasFocus()~=0 or not EEex_Key_IsDown(key_ctrl) or not EEex_Key_IsDown(key_shift) then return end
     local ok,err=pcall(function()
-        if key==key_enemy then MRIP_ToggleEnemyPrototype()
-        elseif key==key_preference then MRIP_TogglePreference()
+        if key==key_combat then MRIP_ToggleCombatOnly()
+        elseif key==key_enemy then MRIP_ToggleEnemyPrototype()
+        elseif development_build and key==key_preference then MRIP_TogglePreference()
         elseif key==key_settle then MRIP_ToggleSettle()
         elseif key==key_attack then MRIP_ToggleAttackSpacing()
         elseif key==key_pass then MRIP_TogglePass()
         elseif key==key_start then MRIP_Start()
-        elseif key==key_snapshot then MRIP_Snapshot()
-        elseif key==key_end then MRIP_Stop() end
+        elseif development_build and key==key_end then MRIP_Stop() end
     end)
     if not ok then movement_disable("key-error"); if buffer then EEex_Write32(buffer+56,0); EEex_Write32(buffer,0) end; active=false; log("ERROR key-listener "..tostring(err)) end
 end)

@@ -1,5 +1,16 @@
 # Changelog
 
+## 0.1.10-preview — 2026-10-10
+
+- Added an optional, saved outside-combat-only mode for allied passage. Defaults OFF; toggle with Ctrl+Shift+F2.
+- Combat follows quicksave's battle/damage timers, including their cooldown. Dialogue and unrelated save restrictions do not count.
+- Allies already overlapping when combat starts can escape outward. Permission expires after separation and cannot allow later crossings.
+- Allied spacing helpers pause during combat in this mode. Enemy cooperation keeps its separate setting.
+- Simplified release controls to Ctrl+Shift+F1–F6. F1 is session-only; F2–F5 save their choices.
+- Visual preference starts enabled and has no release hotkey. Old saved OFF settings are ignored; slow evaluations fall back for that request without switching the feature off.
+- F7 visual comparison and F9 early recording stop are available in dev builds only. Removed the F8 snapshot hotkey.
+- Combat transition and corrected escape confirmed in-game in BG2EE 2.6. Offline runtime, native assembly, configuration and control checks pass across all four profiles.
+
 ## 0.1.8-preview — 2026-10-09
 
 - Fix a false executable-hash warning: explicitly expand the selected filename before WeiDU computes its MD5.

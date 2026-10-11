@@ -2,9 +2,9 @@
 
 **Send `bg-redux-support.log` and a short description of what happened.**
 
-1. For a movement problem, hold **Left Ctrl + Left Shift**, press **F7**, and
-   reproduce the problem within 20 seconds. F9 ends recording early; F8 takes an
-   extra snapshot. Recording does not change your enabled features.
+1. For a movement problem, hold **Left Ctrl + Left Shift**, press **F6**, and
+   reproduce the problem within 20 seconds. Recording ends automatically and
+   does not change your enabled features.
 2. Double-click **`Collect BG Redux Support.cmd`** in the game folder.
 3. Send the resulting **`bg-redux-support.log`**. The collector prints its location:
    normally the game folder, or your Desktop if that folder cannot be written.

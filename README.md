@@ -32,7 +32,7 @@ Existing optional settings survive reinstall.
 
 ## Compatibility
 
-**Version 0.1.8-preview** automatically selects one of four verified executable profiles.
+**Version 0.1.10-preview** automatically selects one of four verified executable profiles.
 
 | Setup | Status |
 | --- | --- |
@@ -86,29 +86,26 @@ Hold **Left Ctrl + Left Shift**, then press:
 
 | Key | Feature |
 | --- | --- |
-| F6 | Allied movement |
-| F5 | Attack spacing |
-| F4 | Gentle settle |
-| F3 | Visual route preference |
-| F2 | Enemy cooperation (experimental; default OFF) |
+| F1 | Core allied noclip (ON each launch; session-only) |
+| F2 | Allied noclip only outside combat (default OFF; saved) |
+| F3 | Enemy cooperation (default OFF; saved) |
+| F4 | Gentle settle (default ON; saved) |
+| F5 | Attack positioning (default ON; saved) |
+| F6 | Start a 20-second diagnostic recording; automatically ends |
 
-F6 changes allied movement for the current session only; it starts ON at every
-launch, including when an old INI contains `Movement=0`. F2–F5 persist in
-`bg-redux-movement.ini` and apply across saves and later launches. Enemy cooperation
-defaults OFF when no saved choice exists. You can edit these optional settings to
-`1` (on) or `0` (off), then restart the game.
+F2–F5 persist in `bg-redux-movement.ini`, independently of saves. Visual route
+preference stays enabled in release builds and ignores a legacy saved OFF choice.
+Slow calculations keep the native route for that request; later requests still
+use visual preference. Normal play retains compact startup/error logging.
+Recording does not change movement settings.
 
-Normal play logs only compact startup/status/error entries with the `[BG Redux]`
-prefix. Automatic startup does not add toggle instructions to game chat.
-Detailed diagnostics are off by default. With the same modifiers, **F7** starts a
-20-second capture, **F8** takes a snapshot, and **F9** ends the capture early.
-Recording does not enable or disable movement.
-
-See [the quick hotkey guide](bg-redux-movement/QUICKSTART.md).
+Dev builds share F1–F6 and add F7 for session-only visual comparisons and F9 to
+end recording early. F8 has no action in either build. See
+[dev controls](docs/DEV-HOTKEYS.md) and [the quick guide](bg-redux-movement/QUICKSTART.md).
 
 ## Support reports
 
-For a movement issue, press **Left Ctrl + Left Shift + F7** and reproduce within
+For a movement issue, press **Left Ctrl + Left Shift + F6** and reproduce within
 20 seconds. Then double-click **`Collect BG Redux Support.cmd`** in the game folder
 and send **`bg-redux-support.log`** with a short description. Collect before
 restarting when possible. Startup failures can be collected without a capture.
@@ -144,3 +141,20 @@ movement prototype within Multiplayer Redux. See [credits](CREDITS.md).
 BG Pathfinding Redux's original code and documentation are available under the
 [MIT License](LICENSE), copyright (c) 2026 Zach Hopkins. Third-party tools retain
 their own licenses; see [third-party notices](THIRD_PARTY_NOTICES.md).
+
+## Outside-combat-only allied passage
+
+**Left Ctrl + Left Shift + F2** toggles this optional mode. It defaults OFF and
+saves `OutOfCombatOnly` in `bg-redux-movement.ini` for later launches. F1 remains
+a session switch and starts ON.
+
+When enabled, allies pass through each other outside combat and use native
+blocking during combat. Allies already overlapping can move outward until clear;
+they cannot enter another ally’s space. Walls, doors, enemies and neutrals stay
+blocking. Enemy cooperation remains independent. Allied custom attack spacing,
+settle and visual preference pause during combat and retain their saved settings.
+
+Combat follows quicksave’s combat-only area check: a positive battle or damage
+timer in any loaded area. Passage resumes after the native cooldown expires.
+Dialogue and other save restrictions do not activate this mode. Combat transition and overlap escape were confirmed in the dedicated BG2EE 2.6
+test copy on October 10, 2026. All four profiles passed offline checks.
