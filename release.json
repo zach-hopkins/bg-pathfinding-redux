@@ -1,10 +1,10 @@
 {
   "name": "bg-redux-movement",
-  "version": "0.1.10-preview",
+  "version": "0.1.11-preview",
   "revision": 56,
   "policy_revision": 52,
-  "status": "user-confirmed-combat-only-offline-verified-controls",
-  "runtime_sha256": "5280441DBAED7539F3D814932CFBBC779C568A33D03BAB1D75BA4A2B0B6D50EB",
+  "status": "user-confirmed-crowded-escape-and-combat-delay",
+  "runtime_sha256": "130FF778053C3CC6F220B6E7F79BB82900E783F4143D3986A89E59E67B6C7C89",
   "tested_game": "Windows BG2EE 2.6.6.0; Steam BG2EE 2.7.3.0; Steam BGEE/SoD 2.6.6.0 and 2.7.3.0",
   "tested_eeex": "1.2.0 on BG2EE 2.6; 1.3.0 on BG2EE 2.7 and BGEE/SoD 2.6/2.7",
   "solo_only": true,
@@ -19,7 +19,7 @@
   },
   "existing_settings_preserved": true,
   "validation_report": "docs/VALIDATION.md",
-  "accepted_date": "2026-10-10",
+  "accepted_date": "2026-10-12",
   "public_release_published": false,
   "project_license": "MIT",
   "profiles": [
@@ -36,7 +36,7 @@
         "checksum": 0,
         "file_size": 7182336
       },
-      "runtime_sha256": "D9D2471D23ED1FE659BE18B0E3F7CB2E5DE3215C1E276E8C14C87A4A6B862B5A",
+      "runtime_sha256": "68268E27E4933DFB4E10E80CD8CDC2CC3F1DBB9C1BA90CE0A44AB3D1D0638AC4",
       "runtime_path": "bg-redux-movement/runtime/profiles/bg2ee-2.6.6.0.lua",
       "tested_eeex": "1.2.0",
       "accepted_date": "2026-10-06",
@@ -56,7 +56,7 @@
         "checksum": 7205089,
         "file_size": 7202696
       },
-      "runtime_sha256": "F09F3C89BE4029A64C02F5934870E087B88DB08AE47632F100BFAB96492C6A81",
+      "runtime_sha256": "929C9F2E09E49D4AC5B9440E793A749F39AEB25628029B42BB0774346EBEA75F",
       "runtime_path": "bg-redux-movement/runtime/profiles/bg2ee-steam-2.7.3.0.lua",
       "tested_eeex": "1.3.0",
       "accepted_date": "2026-10-07",
@@ -78,7 +78,7 @@
         "checksum": 0,
         "file_size": 7124992
       },
-      "runtime_sha256": "7137E9B5DEFA2425D04A9843441A136C033C9F5165A938A05B83F5CF0C0E81F8",
+      "runtime_sha256": "383EB1FCCA3F2B807670CD8BB80B0467F0A821870F32A2CCE8D3CB612ADC506C",
       "runtime_path": "bg-redux-movement/runtime/profiles/bgee-steam-2.6.6.0.lua",
       "tested_eeex": "1.3.0",
       "gameplay_acceptance": "user-confirmed",
@@ -104,7 +104,7 @@
         "checksum": 7200563,
         "file_size": 7145352
       },
-      "runtime_sha256": "F399EF899C40F94152B636B82B277BFA0AD9E8051EB94CA511F25DCB0B4CAFD4",
+      "runtime_sha256": "338208EEF94D25CE5DB0E76D9F411CB0CBBCAFF5651755980DF5A24004B92D40",
       "runtime_path": "bg-redux-movement/runtime/profiles/bgee-steam-2.7.3.0.lua",
       "tested_eeex": "1.3.0",
       "gameplay_acceptance": "user-confirmed",
@@ -131,19 +131,20 @@
   "gog_gameplay_acceptance": "pending",
   "overlap_escape_revision": 1,
   "overlap_escape_acceptance": "User confirmed neutral and enemy overlap separation on 2026-10-09",
-  "development_status": "Unpublished default-off enemy cooperation prototype",
+  "development_status": "Regular single-player preview; optional enemy cooperation defaults OFF",
   "enemy_prototype_revision": 4,
   "setting_persistence": {
     "Movement": "session only; ON each launch",
     "EnemyPrototype": "INI; OFF when absent",
     "AttackSpacing": "INI",
     "GentleSettle": "INI",
-    "RoutePreference": "INI; automatic slow guard is session only"
+    "RoutePreference": "Always ON at release startup; no persisted toggle",
+    "OutOfCombatOnly": "INI; OFF when absent"
   },
   "enemy_gameplay_acceptance": "Dedicated Windows BG2EE 2.6.6.0 doorway and open approach runs accepted by user; other profiles checked offline",
   "enemy_option": "Default OFF; saved game-folder EnemyPrototype setting; requires allied movement and attack spacing ON",
   "installer_hash_fix": "Explicit filename expansion for WeiDU FILE_MD5; verified clean/renamed files no longer warn",
-  "combat_only_status": "Candidate 2 escape correction confirmed by user October 10, 2026; control cleanup offline verified",
+  "combat_only_status": "Crowded escape and combat-clear delay confirmed by user on 2026-10-12 in dedicated BG2EE 2.6; all four profiles checked offline; quicksave investigation deferred",
   "build_mode": "release",
   "controls": "Release F1-F6; dev adds F7 and F9; F8 removed"
 }

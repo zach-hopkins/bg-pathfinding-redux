@@ -19,7 +19,7 @@ See [QUICKSTART.md](QUICKSTART.md) for the hotkey guide.
 
 ## Tested setups and updates
 
-This 0.1.10-preview package automatically selects the supported native profile for:
+This 0.1.11-preview package automatically selects the supported native profile for:
 
 - Windows BG2EE 2.6.6.0 / EEex 1.2.0 (revision 53).
 - Windows Steam BG2EE 2.7.3.0 / EEex 1.3.0 (revision 54), confirmed working
@@ -139,12 +139,14 @@ saves `OutOfCombatOnly` in `bg-redux-movement.ini` for later launches. F1 remain
 a session switch and starts ON.
 
 When enabled, allies pass through each other outside combat and use native
-blocking during combat. Allies already overlapping can move outward until clear;
+blocking during combat. Allies already overlapping can take a bounded escape route until clear;
 they cannot enter another ally’s space. Walls, doors, enemies and neutrals stay
 blocking. Enemy cooperation remains independent. Allied custom attack spacing,
 settle and visual preference pause during combat and retain their saved settings.
 
 Combat follows quicksave’s combat-only area check: a positive battle or damage
-timer in any loaded area. Passage resumes after the native cooldown expires.
+timer in any loaded area. Passage resumes after the native cooldown and three continuously clear seconds of game time. Pausing does not consume that delay.
 Dialogue and other save restrictions do not activate this mode. Combat transition and overlap escape were confirmed in the dedicated BG2EE 2.6
 test copy on October 10, 2026. All four profiles passed offline checks.
+
+Crowded escape and the three-second combat-clear delay were confirmed in the dedicated BG2EE 2.6 test copy on October 12, 2026. All four profiles passed offline checks. Further quicksave detection investigation remains deferred.

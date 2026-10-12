@@ -52,7 +52,12 @@ function P.outward(m,a,x,y)
     if not P.overlapping(m,a) then return false end
     local mx,my=math.floor(m.x/16),math.floor(m.y/12)
     if x==mx and y==my then return true end -- the path search's root cell
-    local anchor=m.combat_blocked and P.ally(a.ea) and P.combat_grant(m,a) or a
+    -- A transition grant allows a bounded sideways/inward step through the
+    -- original overlap. Requiring progress away from every ally can deadlock a
+    -- crowded corridor. Only captured pairs and their original cells qualify.
+    local grant=m.combat_blocked and P.ally(a.ea) and P.combat_grant(m,a)
+    if grant then return P.footprint(grant,x,y) end
+    local anchor=a
     local ax,ay=math.floor(anchor.x/16),math.floor(anchor.y/12)
     local dx,dy=mx-ax,my-ay
     local nx,ny=x-ax,y-ay

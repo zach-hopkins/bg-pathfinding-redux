@@ -275,7 +275,7 @@ if MRIP_TEST_RELEASE then
     assert(not MRIP_OutOfCombatOnly)
     local saved_type=CAIObjectType
     CAIObjectType={ANYONE={}}
-    EEex_EngineGlobal_CBaldurChitin={m_pObjectGame={m_gameAreas={get=function()return {ptr=123,m_nBattleSongCounter=1,m_nDamageCounter=0,forAllOfTypeInRange=function()end}end}}}
+    EEex_EngineGlobal_CBaldurChitin={m_pObjectGame={ptr=456,m_worldTime={m_gameTime=1000},m_gameAreas={get=function()return {ptr=123,m_nBattleSongCounter=1,m_nDamageCounter=0,forAllOfTypeInRange=function()end}end}}}
     modifiers=true;key_listener('F2');assert(MRIP_OutOfCombatOnly and release_values.OutOfCombatOnly=='1' and memory[buffer+0x400000]==1)
     key_listener('F2');assert(not MRIP_OutOfCombatOnly and release_values.OutOfCombatOnly=='0' and memory[buffer+0x400000]==0);modifiers=false;EEex_EngineGlobal_CBaldurChitin=nil;CAIObjectType=saved_type
     local writes_before_pass=#release_writes

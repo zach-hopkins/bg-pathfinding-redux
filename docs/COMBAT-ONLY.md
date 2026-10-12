@@ -24,7 +24,7 @@ EEex 1.3 binding DLL alongside the actual Steam executable in an offline copy.
 Implementation polls at most once per 50 ms and publishes a separate allocated
 32-bit combat restriction flag to the native worker and bump bypasses. Allied
 pass-cost and owned private bitmap policies retain ally occupancy during combat.
-Only existing overlaps receive a distance-increasing outward escape; normal entry
+Only existing overlaps receive a bounded escape allowance; normal entry
 stays blocked. Optional allied attack spacing, settle and visual route preference
 pause, retaining their settings. Enemy cooperation remains independent.
 
@@ -49,3 +49,22 @@ permission across the map. Existing neutral/enemy escape behavior is unchanged.
 Regression coverage tests new encounters, separation/reentry, identity reuse,
 area changes and paired movement against the actual shipped policies and
 transition adapter. The corrected escape behavior was confirmed working in-game.
+
+
+## Crowded transition correction — October 12, 2026
+
+Combat ally grants allow sideways or temporarily inward steps within each
+captured blocker's original footprint. They remain identity/area bound, are
+captured only at collision activation, and expire on separation. This avoids
+opposing distance constraints in a crowded corridor without granting entry
+through newly encountered allies. Neutral/enemy escape retains its outward rule.
+
+After native combat timers clear, retain collision for 45 continuously clear
+game ticks (normally three seconds). New combat resets the delay. Paused game
+time contributes zero; clock rewind, game identity change or a jump larger than
+15 ticks restarts the clear interval. Missing fields retain collision and log
+the check error. Disabling F2 still restores passage immediately.
+
+The quicksave comparison is deferred. These changes stabilize the existing
+signal; they do not establish equivalence with every combat-specific save refusal.
+The user confirmed this correction working in the dedicated BG2EE 2.6 test copy on October 12, 2026. All four profiles passed offline checks; this feature has not been live-tested on every profile.

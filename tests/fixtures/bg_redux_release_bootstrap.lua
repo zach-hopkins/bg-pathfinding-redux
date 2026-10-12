@@ -28,7 +28,7 @@ if install_ok then
         local ok,err=pcall(function()
             combat_refresh(true)
             if release_options.Movement and MRIP_TraceEnabled and not pass_mode then MRIP_TogglePass() end
-            log('RELEASE_READY build='..(development_build and 'dev' or 'release')..' version=0.1.10-preview movement='..tostring(pass_mode)
+            log('RELEASE_READY build='..(development_build and 'dev' or 'release')..' version=0.1.11-preview movement='..tostring(pass_mode)
                 ..' combat_only='..tostring(MRIP_OutOfCombatOnly)..' preference='..tostring(MRIP_PreferenceEnabled)..' spacing='..tostring(MRIP_AttackSpacingEnabled)
                 ..' settle='..tostring(MRIP_SettleEnabled)..' capture='..tostring(active))
         end)

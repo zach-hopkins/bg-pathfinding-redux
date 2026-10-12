@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.1.11-preview — 2026-10-12
+
+- Allow bounded sideways/inward escape through allies already overlapping when combat collision activates. Permission stays in the original footprint and expires upon separation. New allies, enemies, neutrals and terrain remain blockers.
+- Require 45 continuously clear game ticks (about three seconds) before restoring allied passage. Pause does not consume the delay; new combat resets it. Load/rewind/time skips restart the interval.
+- No new hooks or executable edits. The quicksave detection comparison is deferred. User confirmed the correction working in dedicated BG2EE 2.6. Offline runtime and native assembly checks pass across all four profiles.
+
 ## 0.1.10-preview — 2026-10-10
 
 - Added an optional, saved outside-combat-only mode for allied passage. Defaults OFF; toggle with Ctrl+Shift+F2.

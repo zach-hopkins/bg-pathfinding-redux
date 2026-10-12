@@ -2,6 +2,9 @@
 -- Quicksave scans all 12 loaded areas; dialogue/quest save restrictions are unrelated.
 local combat_state,combat_blocked,combat_last,combat_error=nil,false,nil,false
 local combat_grants={}
+local combat_clear_ticks,combat_game_time,combat_game_owner=0,nil,nil
+local combat_clearing=false
+local combat_clear_delay=45 -- three seconds at the native 15 game ticks/second
 local function combat_actor(sprite)
     local a={id=sprite.m_id,owner=EEex_UDToPtr(sprite),
         area=sprite.m_pArea and EEex_UDToPtr(sprite.m_pArea) or 0,
@@ -54,16 +57,35 @@ local function combat_refresh(force)
     combat_last=now
     local blocked=false
     if MRIP_OutOfCombatOnly then
-        local ok,value=pcall(function()
+        local ok,value,time,owner=pcall(function()
             local game=EEex_EngineGlobal_CBaldurChitin.m_pObjectGame
+            local time=game.m_worldTime.m_gameTime
+            assert(type(time)=='number' and time>=0,'invalid combat game time')
+            local owner=EEex_UDToPtr(game)
             for slot=0,11 do
                 local area=game.m_gameAreas:get(slot)
-                if area and EEex_UDToPtr(area)~=0 and (area.m_nBattleSongCounter>0 or area.m_nDamageCounter>0) then return true end
+                if area and EEex_UDToPtr(area)~=0 and (area.m_nBattleSongCounter>0 or area.m_nDamageCounter>0) then return true,time,owner end
             end
-            return false
+            return false,time,owner
         end)
         blocked=not ok or value
         if not ok and not combat_error then combat_error=true;log('COMBAT_CHECK_ERROR '..tostring(value)) end
+        local elapsed=ok and combat_game_owner==owner and combat_game_time and time-combat_game_time or nil
+        if blocked then combat_clear_ticks=0;combat_clearing=false
+        elseif combat_blocked then
+            -- Pauses do not advance game time. Load/rewind/time skips restart
+            -- the clear interval instead of treating a jump as peaceful play.
+            if combat_clearing and elapsed and elapsed>=0 and elapsed<=15 then
+                combat_clear_ticks=combat_clear_ticks+elapsed
+            else combat_clear_ticks=0 end
+            combat_clearing=true
+            blocked=combat_clear_ticks<combat_clear_delay
+        else combat_clear_ticks=0;combat_clearing=false end
+        combat_game_time=ok and time or nil
+        combat_game_owner=ok and owner or nil
+    else
+        combat_clear_ticks,combat_game_time,combat_game_owner=0,nil,nil
+        combat_clearing=false
     end
     if blocked and not combat_blocked then
         local ok,grants,count=pcall(combat_capture)

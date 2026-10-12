@@ -487,7 +487,12 @@ function P.outward(m,a,x,y)
     if not P.overlapping(m,a) then return false end
     local mx,my=math.floor(m.x/16),math.floor(m.y/12)
     if x==mx and y==my then return true end -- the path search's root cell
-    local anchor=m.combat_blocked and P.ally(a.ea) and P.combat_grant(m,a) or a
+    -- A transition grant allows a bounded sideways/inward step through the
+    -- original overlap. Requiring progress away from every ally can deadlock a
+    -- crowded corridor. Only captured pairs and their original cells qualify.
+    local grant=m.combat_blocked and P.ally(a.ea) and P.combat_grant(m,a)
+    if grant then return P.footprint(grant,x,y) end
+    local anchor=a
     local ax,ay=math.floor(anchor.x/16),math.floor(anchor.y/12)
     local dx,dy=mx-ax,my-ay
     local nx,ny=x-ax,y-ay
@@ -629,6 +634,9 @@ local movement_ready
 -- Quicksave scans all 12 loaded areas; dialogue/quest save restrictions are unrelated.
 local combat_state,combat_blocked,combat_last,combat_error=nil,false,nil,false
 local combat_grants={}
+local combat_clear_ticks,combat_game_time,combat_game_owner=0,nil,nil
+local combat_clearing=false
+local combat_clear_delay=45 -- three seconds at the native 15 game ticks/second
 local function combat_actor(sprite)
     local a={id=sprite.m_id,owner=EEex_UDToPtr(sprite),
         area=sprite.m_pArea and EEex_UDToPtr(sprite.m_pArea) or 0,
@@ -681,16 +689,35 @@ local function combat_refresh(force)
     combat_last=now
     local blocked=false
     if MRIP_OutOfCombatOnly then
-        local ok,value=pcall(function()
+        local ok,value,time,owner=pcall(function()
             local game=EEex_EngineGlobal_CBaldurChitin.m_pObjectGame
+            local time=game.m_worldTime.m_gameTime
+            assert(type(time)=='number' and time>=0,'invalid combat game time')
+            local owner=EEex_UDToPtr(game)
             for slot=0,11 do
                 local area=game.m_gameAreas:get(slot)
-                if area and EEex_UDToPtr(area)~=0 and (area.m_nBattleSongCounter>0 or area.m_nDamageCounter>0) then return true end
+                if area and EEex_UDToPtr(area)~=0 and (area.m_nBattleSongCounter>0 or area.m_nDamageCounter>0) then return true,time,owner end
             end
-            return false
+            return false,time,owner
         end)
         blocked=not ok or value
         if not ok and not combat_error then combat_error=true;log('COMBAT_CHECK_ERROR '..tostring(value)) end
+        local elapsed=ok and combat_game_owner==owner and combat_game_time and time-combat_game_time or nil
+        if blocked then combat_clear_ticks=0;combat_clearing=false
+        elseif combat_blocked then
+            -- Pauses do not advance game time. Load/rewind/time skips restart
+            -- the clear interval instead of treating a jump as peaceful play.
+            if combat_clearing and elapsed and elapsed>=0 and elapsed<=15 then
+                combat_clear_ticks=combat_clear_ticks+elapsed
+            else combat_clear_ticks=0 end
+            combat_clearing=true
+            blocked=combat_clear_ticks<combat_clear_delay
+        else combat_clear_ticks=0;combat_clearing=false end
+        combat_game_time=ok and time or nil
+        combat_game_owner=ok and owner or nil
+    else
+        combat_clear_ticks,combat_game_time,combat_game_owner=0,nil,nil
+        combat_clearing=false
     end
     if blocked and not combat_blocked then
         local ok,grants,count=pcall(combat_capture)
@@ -4781,7 +4808,7 @@ if install_ok then
         local ok,err=pcall(function()
             combat_refresh(true)
             if release_options.Movement and MRIP_TraceEnabled and not pass_mode then MRIP_TogglePass() end
-            log('RELEASE_READY build='..(development_build and 'dev' or 'release')..' version=0.1.10-preview movement='..tostring(pass_mode)
+            log('RELEASE_READY build='..(development_build and 'dev' or 'release')..' version=0.1.11-preview movement='..tostring(pass_mode)
                 ..' combat_only='..tostring(MRIP_OutOfCombatOnly)..' preference='..tostring(MRIP_PreferenceEnabled)..' spacing='..tostring(MRIP_AttackSpacingEnabled)
                 ..' settle='..tostring(MRIP_SettleEnabled)..' capture='..tostring(active))
         end)

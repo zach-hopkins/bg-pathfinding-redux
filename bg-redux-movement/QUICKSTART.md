@@ -18,10 +18,12 @@ Visual route preference stays ON in release builds. An old `RoutePreference=0`
 is ignored. Slow calculations keep the native route for that request and leave
 preference enabled for later movement.
 
-With F2 ON, allies block each other during the engine's combat cooldown. Pairs
-already overlapping when blocking starts can escape outward; new overlaps do
+With F2 ON, allies block each other during combat and its cooldown, plus three continuously clear seconds of game time. Pausing does not consume this delay. Pairs
+already overlapping when blocking starts can take a bounded escape route; new overlaps do
 not receive permission. Walls, doors, enemies and neutrals remain blocking.
 
 **Report an issue:** press F6, reproduce within 20 seconds, then run
 `Collect BG Redux Support.cmd` and send `bg-redux-support.log` with a description.
 Recording does not change your movement settings.
+
+Crowded escape and the three-second combat-clear delay were confirmed in the dedicated BG2EE 2.6 test copy on October 12, 2026. All four profiles passed offline checks. Further quicksave detection investigation remains deferred.
