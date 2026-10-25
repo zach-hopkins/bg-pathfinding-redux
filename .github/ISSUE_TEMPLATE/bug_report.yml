@@ -13,7 +13,7 @@ body:
     id: setup
     attributes:
       label: Installation and enabled features
-      description: BGEE/SoD, BG2EE or EET, relevant mods, and F3â€“F6 settings. Mention Wine/CrossOver if applicable.
+      description: BGEE/SoD, BG2EE or EET, relevant mods, and F3-F6 settings. Mention Wine/CrossOver if applicable.
     validations:
       required: true
   - type: textarea
@@ -27,4 +27,4 @@ body:
     id: evidence
     attributes:
       label: Diagnostic evidence
-      description: Attach bg-redux-support.log from Collect BG Redux Support.cmd in your game folder. For movement issues, record first with Left Ctrl+Left Shift+F7. Review personal details before sharing. Game executables must not be uploaded.
+      description: Attach bg-redux-support.log from Collect BG Redux Support.cmd in your game folder. For movement issues, record first with Left Ctrl+Left Shift+F6. Review personal details before sharing. Game executables must not be uploaded.
