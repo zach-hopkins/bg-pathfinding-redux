@@ -2,6 +2,7 @@
 import argparse
 import hashlib
 import json
+import shutil
 import subprocess
 import uuid
 from pathlib import Path
@@ -12,7 +13,7 @@ def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument('--powershell', default='powershell.exe')
     args = parser.parse_args()
-    lab = WORK / ('support-' + uuid.uuid4().hex[:8])
+    lab = WORK / ("support-'quoted-" + uuid.uuid4().hex[:8])
     (lab/'bg-redux-movement/runtime/profiles').mkdir(parents=True)
     (lab/'override').mkdir()
     (lab/'Baldur.exe').write_bytes(b'fixture executable, not runnable')
@@ -64,8 +65,25 @@ def main():
     text = collect()
     assert '[TRUNCATED:' in text and 'SETTLE_ERROR fixture' in text
     assert len(report.read_bytes()) < 4300000
-    print('Support collector passed: custom/quoted/absolute paths, hashes, missing information, '
-          'bounded logs, path redaction, and read-only inputs')
+
+    launcher = ROOT/'bg-redux-movement/support/Collect BG Redux Support.cmd'
+    nested = lab/'bg-redux-movement/support'
+    nested.mkdir(parents=True, exist_ok=True)
+    shutil.copy2(ROOT/'bg-redux-movement/support/collect-support.ps1', nested/'collect-support.ps1')
+    shutil.copy2(launcher, nested/'Collect BG Redux Support.cmd')
+    shutil.copy2(launcher, lab/'Collect BG Redux Support.cmd')
+    for location in (lab/'Collect BG Redux Support.cmd', nested/'Collect BG Redux Support.cmd'):
+        report.unlink(missing_ok=True)
+        default_report = lab/'bg-redux-support.log'
+        default_report.unlink(missing_ok=True)
+        cp = subprocess.run(['cmd.exe', '/d', '/c', str(location.resolve())], cwd=lab,
+                            input='\n', capture_output=True, text=True, timeout=30)
+        assert cp.returncode == 0, cp.stdout + cp.stderr
+        assert default_report.is_file(), (location, cp.stdout, cp.stderr)
+        assert 'BG Redux support report - format 1' in default_report.read_text(encoding='utf-8')
+    print('Support collector passed: root and nested launchers, apostrophe paths, '
+          'custom/quoted/absolute paths, hashes, missing information, bounded logs, '
+          'path redaction, and read-only inputs')
 
 
 if __name__ == '__main__':
